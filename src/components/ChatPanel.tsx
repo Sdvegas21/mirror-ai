@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { Send, Trash2 } from "lucide-react";
+import { motion } from "framer-motion";
 import { Message } from "@/types";
 import { Button } from "@/components/ui/button";
 
@@ -40,14 +41,29 @@ export function ChatPanel({
   isLoading,
 }: ChatPanelProps) {
   const [input, setInput] = useState("");
+  const [isPulsing, setIsPulsing] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const prevMessageCountRef = useRef(messages.length);
 
   const isEos = variant === "eos";
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isLoading]);
+
+  // Trigger pulse animation when new assistant message arrives on EOS panel
+  useEffect(() => {
+    if (isEos && messages.length > prevMessageCountRef.current) {
+      const lastMessage = messages[messages.length - 1];
+      if (lastMessage?.role === "assistant") {
+        setIsPulsing(true);
+        const timer = setTimeout(() => setIsPulsing(false), 1000);
+        return () => clearTimeout(timer);
+      }
+    }
+    prevMessageCountRef.current = messages.length;
+  }, [messages, isEos]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -58,12 +74,24 @@ export function ChatPanel({
   };
 
   return (
-    <div
+    <motion.div
       className={`flex flex-col h-full rounded-lg border ${
         isEos
           ? "border-primary/50 eos-border-glow"
           : "border-border"
       } bg-card overflow-hidden`}
+      animate={
+        isEos && isPulsing
+          ? {
+              boxShadow: [
+                "0 0 15px hsl(263 70% 66% / 0.25), inset 0 0 15px hsl(263 70% 66% / 0.05)",
+                "0 0 30px hsl(263 70% 66% / 0.5), inset 0 0 20px hsl(263 70% 66% / 0.15)",
+                "0 0 15px hsl(263 70% 66% / 0.25), inset 0 0 15px hsl(263 70% 66% / 0.05)",
+              ],
+            }
+          : {}
+      }
+      transition={{ duration: 0.8, ease: "easeInOut" }}
     >
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-muted/30">
@@ -145,6 +173,6 @@ export function ChatPanel({
           <span className="sr-only">Send</span>
         </Button>
       </form>
-    </div>
+    </motion.div>
   );
 }
