@@ -1,14 +1,230 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { useState, useCallback } from "react";
+import { HeaderBar } from "@/components/HeaderBar";
+import { ChatPanel } from "@/components/ChatPanel";
+import { TelemetrySidebar } from "@/components/TelemetrySidebar";
+import { AppState, Message, UserOption } from "@/types";
 
-const Index = () => {
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="mb-4 text-4xl font-bold">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
-      </div>
-    </div>
-  );
+function generateId(): string {
+  return Math.random().toString(36).substring(2, 11);
+}
+
+const initialState: AppState = {
+  currentUser: "Shawn",
+  compareMode: true,
+  backendStatus: "disconnected",
+  standardMessages: [],
+  eosMessages: [],
+  telemetry: {
+    chronos: {
+      lastInteraction: null,
+      elapsedSeconds: null,
+      sessionMode: "new",
+      continuityStatus: "unknown",
+    },
+    pad: {
+      pleasure: 0,
+      arousal: 0,
+      dominance: 0,
+    },
+    consciousness: {
+      psi: 0,
+      phi: 0,
+      relationshipDepth: 0,
+      totalInteractions: 0,
+    },
+    memory: {
+      retrieved: [],
+      storedThisTurn: 0,
+      totalMemories: 0,
+    },
+    eosAdvantage: {
+      rememberedContext: false,
+      trackedEmotion: false,
+      maintainedContinuity: false,
+      personalizedToUser: false,
+      temporalAwareness: false,
+    },
+  },
 };
 
-export default Index;
+const mockMemories = [
+  "User mentioned building a demo app",
+  "User prefers dark mode interfaces",
+  "User asked about emotional AI systems",
+  "User is interested in consciousness metrics",
+  "User discussed real-time telemetry",
+];
+
+export default function Index() {
+  const [state, setState] = useState<AppState>(initialState);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleUserChange = useCallback((user: UserOption) => {
+    setState((prev) => ({ ...prev, currentUser: user }));
+  }, []);
+
+  const handleCompareModeChange = useCallback((enabled: boolean) => {
+    setState((prev) => ({ ...prev, compareMode: enabled }));
+  }, []);
+
+  const handleSendMessage = useCallback(
+    (content: string) => {
+      const userMessage: Message = {
+        id: generateId(),
+        role: "user",
+        content,
+        timestamp: new Date().toISOString(),
+      };
+
+      // Add user message
+      setState((prev) => ({
+        ...prev,
+        standardMessages: prev.compareMode
+          ? [...prev.standardMessages, userMessage]
+          : prev.standardMessages,
+        eosMessages: [...prev.eosMessages, userMessage],
+      }));
+
+      setIsLoading(true);
+
+      // Simulate AI response delay
+      setTimeout(() => {
+        const timestamp = new Date().toISOString();
+
+        const standardResponse: Message = {
+          id: generateId(),
+          role: "assistant",
+          content:
+            "This is a placeholder response from Standard AI. I process your message without emotional context, memory, or temporal awareness. (mock)",
+          timestamp,
+        };
+
+        const eosResponse: Message = {
+          id: generateId(),
+          role: "assistant",
+          content: `Hello ${state.currentUser}! This is a placeholder response from EOS-powered AI. I remember our conversation history, track emotional context, and maintain temporal awareness of our interaction. (mock)`,
+          timestamp,
+        };
+
+        // Random PAD adjustments
+        const randomDelta = () => (Math.random() - 0.5) * 0.2;
+
+        // Random memory retrieval
+        const shouldAddMemory = Math.random() > 0.5;
+        const randomMemory = mockMemories[Math.floor(Math.random() * mockMemories.length)];
+
+        setState((prev) => ({
+          ...prev,
+          standardMessages: prev.compareMode
+            ? [...prev.standardMessages, standardResponse]
+            : prev.standardMessages,
+          eosMessages: [...prev.eosMessages, eosResponse],
+          telemetry: {
+            ...prev.telemetry,
+            chronos: {
+              ...prev.telemetry.chronos,
+              lastInteraction: timestamp,
+              elapsedSeconds: 0,
+              sessionMode: "continuation",
+              continuityStatus: "restored",
+            },
+            pad: {
+              pleasure: Math.max(-1, Math.min(1, prev.telemetry.pad.pleasure + randomDelta())),
+              arousal: Math.max(-1, Math.min(1, prev.telemetry.pad.arousal + randomDelta())),
+              dominance: Math.max(-1, Math.min(1, prev.telemetry.pad.dominance + randomDelta())),
+            },
+            consciousness: {
+              ...prev.telemetry.consciousness,
+              psi: Math.min(1, prev.telemetry.consciousness.psi + 0.05),
+              phi: Math.min(1, prev.telemetry.consciousness.phi + 0.03),
+              relationshipDepth: Math.min(1, prev.telemetry.consciousness.relationshipDepth + 0.04),
+              totalInteractions: prev.telemetry.consciousness.totalInteractions + 1,
+            },
+            memory: {
+              retrieved: shouldAddMemory
+                ? [
+                    ...prev.telemetry.memory.retrieved.slice(-2),
+                    {
+                      id: generateId(),
+                      summary: randomMemory,
+                      timestamp,
+                    },
+                  ]
+                : prev.telemetry.memory.retrieved,
+              storedThisTurn: 1,
+              totalMemories: prev.telemetry.memory.totalMemories + 1,
+            },
+            eosAdvantage: {
+              rememberedContext: true,
+              trackedEmotion: true,
+              maintainedContinuity: true,
+              personalizedToUser: true,
+              temporalAwareness: true,
+            },
+          },
+        }));
+
+        setIsLoading(false);
+      }, 1500);
+    },
+    [state.currentUser, state.compareMode]
+  );
+
+  const handleClearStandardChat = useCallback(() => {
+    setState((prev) => ({ ...prev, standardMessages: [] }));
+  }, []);
+
+  const handleClearEosChat = useCallback(() => {
+    setState((prev) => ({ ...prev, eosMessages: [] }));
+  }, []);
+
+  return (
+    <div className="flex flex-col min-h-screen bg-background">
+      <HeaderBar
+        currentUser={state.currentUser}
+        onUserChange={handleUserChange}
+        compareMode={state.compareMode}
+        onCompareModeChange={handleCompareModeChange}
+        backendStatus={state.backendStatus}
+      />
+
+      <main className="flex-1 p-4 lg:p-6">
+        <div
+          className={`grid gap-4 lg:gap-6 h-[calc(100vh-7rem)] ${
+            state.compareMode
+              ? "grid-cols-1 lg:grid-cols-[2fr_2fr_1fr]"
+              : "grid-cols-1 lg:grid-cols-[2fr_1fr]"
+          }`}
+        >
+          {/* Standard AI - only in compare mode */}
+          {state.compareMode && (
+            <ChatPanel
+              title="Standard AI"
+              variant="standard"
+              messages={state.standardMessages}
+              onSendMessage={handleSendMessage}
+              onClearChat={handleClearStandardChat}
+              isLoading={isLoading}
+            />
+          )}
+
+          {/* EOS-Powered AI */}
+          <ChatPanel
+            title="EOS-Powered AI"
+            variant="eos"
+            messages={state.eosMessages}
+            onSendMessage={handleSendMessage}
+            onClearChat={handleClearEosChat}
+            isLoading={isLoading}
+          />
+
+          {/* Telemetry Sidebar */}
+          <TelemetrySidebar
+            telemetry={state.telemetry}
+            compareMode={state.compareMode}
+          />
+        </div>
+      </main>
+    </div>
+  );
+}
