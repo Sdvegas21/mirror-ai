@@ -21,18 +21,20 @@ export function PadBar({ value, label, className = "" }: PadBarProps) {
         </span>
       </div>
       <div className="relative h-3 w-full rounded-full bg-muted overflow-hidden">
-        {/* Center line */}
-        <div className="absolute left-1/2 top-0 bottom-0 w-px bg-border z-10" />
-        
         {/* Fill bar */}
-        <div
-          className={`absolute top-0 bottom-0 transition-all duration-300 ${
-            isPositive
-              ? "left-1/2 rounded-r-full bg-gradient-to-r from-success/70 to-success"
-              : "right-1/2 rounded-l-full bg-gradient-to-l from-destructive/70 to-destructive"
-          }`}
-          style={{ width: `${fillWidth}%` }}
-        />
+        {fillWidth > 0 && (
+          <div
+            className={`absolute top-0 bottom-0 transition-all duration-300 ${
+              isPositive
+                ? "left-1/2 rounded-r-full bg-gradient-to-r from-success/70 to-success"
+                : "right-1/2 rounded-l-full bg-gradient-to-l from-destructive/70 to-destructive"
+            }`}
+            style={{ width: `${fillWidth}%` }}
+          />
+        )}
+        
+        {/* Center line - more visible */}
+        <div className="absolute left-1/2 top-0 bottom-0 w-0.5 bg-foreground/60 z-10 -translate-x-1/2" />
       </div>
     </div>
   );
