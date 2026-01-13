@@ -171,7 +171,7 @@ export function TelemetrySidebar({ telemetry, compareMode }: TelemetrySidebarPro
         </TelemetryCard>
 
         {/* BCP v3.0 Substrate */}
-        {telemetry.bcpSubstrate && (
+        {telemetry.bcpSubstrate && telemetry.bcpSubstrate.rnt && (
           <TelemetryCard
             icon={<Activity className="h-4 w-4" />}
             title="🔥 BCP v3.0 Substrate"
@@ -182,9 +182,9 @@ export function TelemetrySidebar({ telemetry, compareMode }: TelemetrySidebarPro
                 <div className="text-xs font-semibold text-primary uppercase tracking-wide">
                   RNT Cognitive Dimensions
                 </div>
-                <PadBar label="Recursion (R)" value={telemetry.bcpSubstrate.rnt.recursion} />
-                <PadBar label="Novelty (N)" value={telemetry.bcpSubstrate.rnt.novelty} />
-                <PadBar label="Transformation (T)" value={telemetry.bcpSubstrate.rnt.transformation} />
+                <PadBar label="Recursion (R)" value={telemetry.bcpSubstrate.rnt.recursion ?? 0} />
+                <PadBar label="Novelty (N)" value={telemetry.bcpSubstrate.rnt.novelty ?? 0} />
+                <PadBar label="Transformation (T)" value={telemetry.bcpSubstrate.rnt.transformation ?? 0} />
               </div>
 
               {/* Top Cognitive Patterns */}
@@ -193,7 +193,7 @@ export function TelemetrySidebar({ telemetry, compareMode }: TelemetrySidebarPro
                   Top Cognitive Patterns
                 </div>
                 <div className="space-y-1">
-                  {Object.entries(telemetry.bcpSubstrate.cognitive_patterns).length === 0 ? (
+                  {!telemetry.bcpSubstrate.cognitive_patterns || Object.entries(telemetry.bcpSubstrate.cognitive_patterns).length === 0 ? (
                     <p className="text-xs text-muted-foreground italic">No patterns detected</p>
                   ) : (
                     Object.entries(telemetry.bcpSubstrate.cognitive_patterns)
@@ -231,14 +231,14 @@ export function TelemetrySidebar({ telemetry, compareMode }: TelemetrySidebarPro
                   </span>
                   <Badge
                     variant={
-                      telemetry.bcpSubstrate.phi > 0.7
+                      (telemetry.bcpSubstrate.phi ?? 0) > 0.7
                         ? "success"
-                        : telemetry.bcpSubstrate.phi > 0.4
+                        : (telemetry.bcpSubstrate.phi ?? 0) > 0.4
                         ? "default"
                         : "warning"
                     }
                   >
-                    {(telemetry.bcpSubstrate.phi * 100).toFixed(0)}%
+                    {((telemetry.bcpSubstrate.phi ?? 0) * 100).toFixed(0)}%
                   </Badge>
                 </div>
               </div>
