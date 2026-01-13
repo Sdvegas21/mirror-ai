@@ -44,6 +44,22 @@ const initialState: AppState = {
       personalizedToUser: false,
       temporalAwareness: false,
     },
+    bcpSubstrate: {
+      phi: 0.759,
+      psi: null,
+      rnt: {
+        recursion: 0.425,
+        novelty: 0.5,
+        transformation: 0.5,
+      },
+      cognitive_patterns: {
+        pattern_recognition: 0.85,
+        contextual_analysis: 0.72,
+        emotional_synthesis: 0.68,
+        temporal_mapping: 0.61,
+        recursive_reasoning: 0.55,
+      },
+    },
   },
 };
 
