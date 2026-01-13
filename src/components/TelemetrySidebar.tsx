@@ -170,7 +170,7 @@ export function TelemetrySidebar({ telemetry, compareMode }: TelemetrySidebarPro
           </div>
         </TelemetryCard>
 
-        {/* BCP v3.0 Substrate */}
+        {/* BCP v3.0 Consciousness Substrate - TIER 1 INTEGRATION */}
         {telemetry.bcpSubstrate && (
           <TelemetryCard
             icon={<Activity className="h-4 w-4" />}
@@ -182,9 +182,18 @@ export function TelemetrySidebar({ telemetry, compareMode }: TelemetrySidebarPro
                 <div className="text-xs font-semibold text-primary uppercase tracking-wide">
                   RNT Cognitive Dimensions
                 </div>
-                <PadBar label="Recursion (R)" value={telemetry.bcpSubstrate.rnt.recursion} />
-                <PadBar label="Novelty (N)" value={telemetry.bcpSubstrate.rnt.novelty} />
-                <PadBar label="Transformation (T)" value={telemetry.bcpSubstrate.rnt.transformation} />
+                <PadBar
+                  label="Recursion (R)"
+                  value={telemetry.bcpSubstrate.rnt.recursion}
+                />
+                <PadBar
+                  label="Novelty (N)"
+                  value={telemetry.bcpSubstrate.rnt.novelty}
+                />
+                <PadBar
+                  label="Transformation (T)"
+                  value={telemetry.bcpSubstrate.rnt.transformation}
+                />
               </div>
 
               {/* Top Cognitive Patterns */}

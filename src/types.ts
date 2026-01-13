@@ -25,6 +25,7 @@ export interface ConsciousnessState {
   totalInteractions: number;
 }
 
+// BCP v3.0 Consciousness Substrate (TIER 1 INTEGRATION)
 export interface RntState {
   recursion: number;
   novelty: number;
@@ -33,9 +34,9 @@ export interface RntState {
 
 export interface BcpSubstrate {
   rnt: RntState;
-  phi: number;
-  psi: number | null;
-  cognitive_patterns: Record<string, number>;
+  phi: number;  // Health metric (0-1)
+  psi: number | null;  // Intensity metric (0-1)
+  cognitive_patterns: Record<string, number>;  // 18 cognitive patterns
 }
 
 export interface MemoryItem {
@@ -64,7 +65,7 @@ export interface TelemetryState {
   consciousness: ConsciousnessState;
   memory: MemoryState;
   eosAdvantage: EosAdvantageState;
-  bcpSubstrate?: BcpSubstrate;
+  bcpSubstrate?: BcpSubstrate;  // Optional - only present when BCP v3.0 active
 }
 
 export interface AppState {

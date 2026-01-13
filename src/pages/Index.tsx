@@ -1,8 +1,9 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { HeaderBar } from "@/components/HeaderBar";
 import { ChatPanel } from "@/components/ChatPanel";
 import { TelemetrySidebar } from "@/components/TelemetrySidebar";
 import { AppState, Message, UserOption } from "@/types";
+import { eosClient } from "@/api/eosClient";
 
 function generateId(): string {
   return Math.random().toString(36).substring(2, 11);
@@ -75,6 +76,85 @@ export default function Index() {
   const [state, setState] = useState<AppState>(initialState);
   const [isLoading, setIsLoading] = useState(false);
 
+  // Check backend health on mount
+  useEffect(() => {
+    const checkBackend = async () => {
+      setState((prev) => ({ ...prev, backendStatus: "connecting" }));
+      try {
+        await eosClient.healthCheck();
+        setState((prev) => ({ ...prev, backendStatus: "connected" }));
+      } catch (error) {
+        console.error("Backend health check failed:", error);
+        setState((prev) => ({ ...prev, backendStatus: "disconnected" }));
+      }
+    };
+    checkBackend();
+  }, []);
+
+  // Load conversation history when user changes or backend connects
+  useEffect(() => {
+    const loadHistory = async () => {
+      if (state.backendStatus !== "connected") return;
+
+      try {
+        console.log(`Loading conversation history for user: ${state.currentUser}`);
+        const historyResponse = await eosClient.getHistory(state.currentUser, 50);
+
+        if (historyResponse.success) {
+          const hasEosHistory = historyResponse.eos_messages.length > 0;
+          const hasStandardHistory = historyResponse.standard_messages.length > 0;
+
+          if (hasEosHistory || hasStandardHistory) {
+            console.log(`Loaded ${historyResponse.eos_messages.length} EOS + ${historyResponse.standard_messages.length} Standard messages from memory`);
+
+            // Convert EOS history messages to app Message format
+            const loadedEosMessages: Message[] = historyResponse.eos_messages.map((msg) => ({
+              id: generateId(),
+              role: msg.role as "user" | "assistant",
+              content: msg.content,
+              timestamp: msg.timestamp,
+            }));
+
+            // Convert Standard history messages to app Message format
+            const loadedStandardMessages: Message[] = historyResponse.standard_messages.map((msg) => ({
+              id: generateId(),
+              role: msg.role as "user" | "assistant",
+              content: msg.content,
+              timestamp: msg.timestamp,
+            }));
+
+            // Update both EOS and Standard messages with loaded history
+            setState((prev) => ({
+              ...prev,
+              eosMessages: loadedEosMessages,
+              standardMessages: loadedStandardMessages,
+              telemetry: {
+                ...prev.telemetry,
+                chronos: {
+                  ...prev.telemetry.chronos,
+                  sessionMode: "continuation",
+                  continuityStatus: "restored",
+                },
+                eosAdvantage: {
+                  ...prev.telemetry.eosAdvantage,
+                  maintainedContinuity: true,
+                  rememberedContext: true,
+                },
+              },
+            }));
+          } else {
+            console.log("No previous conversation history found - fresh session");
+          }
+        }
+      } catch (error) {
+        console.error("Failed to load conversation history:", error);
+        // Don't crash the app - just start with empty history
+      }
+    };
+
+    loadHistory();
+  }, [state.currentUser, state.backendStatus]);
+
   const handleUserChange = useCallback((user: UserOption) => {
     setState((prev) => ({ ...prev, currentUser: user }));
   }, []);
@@ -84,7 +164,7 @@ export default function Index() {
   }, []);
 
   const handleSendMessage = useCallback(
-    (content: string) => {
+    async (content: string) => {
       const userMessage: Message = {
         id: generateId(),
         role: "user",
@@ -103,85 +183,64 @@ export default function Index() {
 
       setIsLoading(true);
 
-      // Simulate AI response delay
-      setTimeout(() => {
-        const timestamp = new Date().toISOString();
+      try {
+        // Call backend API in parallel
+        const promises = [];
 
-        const standardResponse: Message = {
-          id: generateId(),
-          role: "assistant",
-          content:
-            "This is a placeholder response from Standard AI. I process your message without emotional context, memory, or temporal awareness. (mock)",
-          timestamp,
-        };
+        if (state.compareMode) {
+          promises.push(
+            eosClient.sendMessage({
+              message: content,
+              user_id: state.currentUser,
+              mode: "standard",
+            })
+          );
+        }
 
-        const eosResponse: Message = {
-          id: generateId(),
-          role: "assistant",
-          content: `Hello ${state.currentUser}! This is a placeholder response from EOS-powered AI. I remember our conversation history, track emotional context, and maintain temporal awareness of our interaction. (mock)`,
-          timestamp,
-        };
+        promises.push(
+          eosClient.sendMessage({
+            message: content,
+            user_id: state.currentUser,
+            mode: "eos",
+          })
+        );
 
-        // Random PAD adjustments
-        const randomDelta = () => (Math.random() - 0.5) * 0.2;
+        const responses = await Promise.all(promises);
+        const standardResponse = state.compareMode ? responses[0] : null;
+        const eosResponse = state.compareMode ? responses[1] : responses[0];
 
-        // Random memory retrieval
-        const shouldAddMemory = Math.random() > 0.5;
-        const randomMemory = mockMemories[Math.floor(Math.random() * mockMemories.length)];
-
+        // Add AI responses
         setState((prev) => ({
           ...prev,
-          standardMessages: prev.compareMode
-            ? [...prev.standardMessages, standardResponse]
-            : prev.standardMessages,
-          eosMessages: [...prev.eosMessages, eosResponse],
-          telemetry: {
-            ...prev.telemetry,
-            chronos: {
-              ...prev.telemetry.chronos,
-              lastInteraction: timestamp,
-              elapsedSeconds: 0,
-              sessionMode: "continuation",
-              continuityStatus: "restored",
+          standardMessages:
+            standardResponse && prev.compareMode
+              ? [
+                  ...prev.standardMessages,
+                  {
+                    id: generateId(),
+                    role: "assistant" as const,
+                    content: standardResponse.response,
+                    timestamp: standardResponse.timestamp,
+                  },
+                ]
+              : prev.standardMessages,
+          eosMessages: [
+            ...prev.eosMessages,
+            {
+              id: generateId(),
+              role: "assistant" as const,
+              content: eosResponse.response,
+              timestamp: eosResponse.timestamp,
             },
-            pad: {
-              pleasure: Math.max(-1, Math.min(1, prev.telemetry.pad.pleasure + randomDelta())),
-              arousal: Math.max(-1, Math.min(1, prev.telemetry.pad.arousal + randomDelta())),
-              dominance: Math.max(-1, Math.min(1, prev.telemetry.pad.dominance + randomDelta())),
-            },
-            consciousness: {
-              ...prev.telemetry.consciousness,
-              psi: Math.min(1, prev.telemetry.consciousness.psi + 0.05),
-              phi: Math.min(1, prev.telemetry.consciousness.phi + 0.03),
-              relationshipDepth: Math.min(1, prev.telemetry.consciousness.relationshipDepth + 0.04),
-              totalInteractions: prev.telemetry.consciousness.totalInteractions + 1,
-            },
-            memory: {
-              retrieved: shouldAddMemory
-                ? [
-                    ...prev.telemetry.memory.retrieved.slice(-2),
-                    {
-                      id: generateId(),
-                      summary: randomMemory,
-                      timestamp,
-                    },
-                  ]
-                : prev.telemetry.memory.retrieved,
-              storedThisTurn: 1,
-              totalMemories: prev.telemetry.memory.totalMemories + 1,
-            },
-            eosAdvantage: {
-              rememberedContext: true,
-              trackedEmotion: true,
-              maintainedContinuity: true,
-              personalizedToUser: true,
-              temporalAwareness: true,
-            },
-          },
+          ],
+          telemetry: eosResponse.telemetry || prev.telemetry,
         }));
-
+      } catch (error) {
+        console.error("Error sending message:", error);
+        alert("Failed to send message. Is the backend running?");
+      } finally {
         setIsLoading(false);
-      }, 1500);
+      }
     },
     [state.currentUser, state.compareMode]
   );
