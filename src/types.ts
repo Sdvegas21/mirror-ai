@@ -25,6 +25,19 @@ export interface ConsciousnessState {
   totalInteractions: number;
 }
 
+export interface RntState {
+  recursion: number;
+  novelty: number;
+  transformation: number;
+}
+
+export interface BcpSubstrate {
+  rnt: RntState;
+  phi: number;
+  psi: number | null;
+  cognitive_patterns: Record<string, number>;
+}
+
 export interface MemoryItem {
   id: string;
   summary: string;
@@ -51,6 +64,7 @@ export interface TelemetryState {
   consciousness: ConsciousnessState;
   memory: MemoryState;
   eosAdvantage: EosAdvantageState;
+  bcpSubstrate?: BcpSubstrate;
 }
 
 export interface AppState {

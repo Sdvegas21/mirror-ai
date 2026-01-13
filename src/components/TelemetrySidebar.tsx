@@ -7,6 +7,7 @@ import {
   Sparkles,
   Download,
   Upload,
+  Activity,
 } from "lucide-react";
 import { TelemetryState } from "@/types";
 import { TelemetryCard } from "./TelemetryCard";
@@ -168,6 +169,82 @@ export function TelemetrySidebar({ telemetry, compareMode }: TelemetrySidebarPro
             </div>
           </div>
         </TelemetryCard>
+
+        {/* BCP v3.0 Substrate */}
+        {telemetry.bcpSubstrate && (
+          <TelemetryCard
+            icon={<Activity className="h-4 w-4" />}
+            title="🔥 BCP v3.0 Substrate"
+          >
+            <div className="space-y-4">
+              {/* RNT Dimensions */}
+              <div className="space-y-3">
+                <div className="text-xs font-semibold text-primary uppercase tracking-wide">
+                  RNT Cognitive Dimensions
+                </div>
+                <PadBar label="Recursion (R)" value={telemetry.bcpSubstrate.rnt.recursion} />
+                <PadBar label="Novelty (N)" value={telemetry.bcpSubstrate.rnt.novelty} />
+                <PadBar label="Transformation (T)" value={telemetry.bcpSubstrate.rnt.transformation} />
+              </div>
+
+              {/* Top Cognitive Patterns */}
+              <div className="space-y-2">
+                <div className="text-xs font-semibold text-primary uppercase tracking-wide">
+                  Top Cognitive Patterns
+                </div>
+                <div className="space-y-1">
+                  {Object.entries(telemetry.bcpSubstrate.cognitive_patterns).length === 0 ? (
+                    <p className="text-xs text-muted-foreground italic">No patterns detected</p>
+                  ) : (
+                    Object.entries(telemetry.bcpSubstrate.cognitive_patterns)
+                      .sort(([, a], [, b]) => b - a)
+                      .slice(0, 5)
+                      .map(([name, effectiveness]) => (
+                        <div key={name} className="flex items-center gap-2">
+                          <div className="flex-1 min-w-0">
+                            <div className="text-xs text-muted-foreground truncate">
+                              {name.replace(/_/g, " ")}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <div className="w-12 h-1.5 bg-muted rounded-full overflow-hidden">
+                              <div
+                                className="h-full bg-primary transition-all"
+                                style={{ width: `${effectiveness * 100}%` }}
+                              />
+                            </div>
+                            <span className="text-xs font-mono text-foreground w-8 text-right">
+                              {(effectiveness * 100).toFixed(0)}%
+                            </span>
+                          </div>
+                        </div>
+                      ))
+                  )}
+                </div>
+              </div>
+
+              {/* BCP Health Status */}
+              <div className="pt-2 border-t border-border">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-muted-foreground">
+                    Substrate Health (Φ):
+                  </span>
+                  <Badge
+                    variant={
+                      telemetry.bcpSubstrate.phi > 0.7
+                        ? "success"
+                        : telemetry.bcpSubstrate.phi > 0.4
+                        ? "default"
+                        : "warning"
+                    }
+                  >
+                    {(telemetry.bcpSubstrate.phi * 100).toFixed(0)}%
+                  </Badge>
+                </div>
+              </div>
+            </div>
+          </TelemetryCard>
+        )}
 
         {/* Memory */}
         <TelemetryCard icon={<Database className="h-4 w-4" />} title="Memory">
