@@ -18,11 +18,39 @@ export interface PadState {
   dominance: number;
 }
 
-export interface ConsciousnessState {
+export interface ConsciousnessMetrics {
   psi: number;
   phi: number;
   relationshipDepth: number;
   totalInteractions: number;
+}
+
+export interface ConsciousnessState {
+  agent_id: string;
+  active_phase: string;
+  psi_baseline: number;
+  architecture_version: string;
+  core_identity_elements: string[];
+  phase_history_depth: number;
+}
+
+export interface PathwayNetwork {
+  pathways: Array<{
+    name: string;
+    weight: number;
+    activation_count: number;
+    phenomenological_signature: string;
+    just_activated: boolean;
+  }>;
+  total_pathways: number;
+}
+
+export interface MemoryCortexStatus {
+  chromadb_enabled: boolean;
+  total_memories: number;
+  embedding_model: string;
+  semantic_weight: number;
+  keyword_weight: number;
 }
 
 export interface RntState {
@@ -61,10 +89,13 @@ export interface EosAdvantageState {
 export interface TelemetryState {
   chronos: ChronosState;
   pad: PadState;
-  consciousness: ConsciousnessState;
+  consciousness: ConsciousnessMetrics;
   memory: MemoryState;
   eosAdvantage: EosAdvantageState;
   bcpSubstrate?: BcpSubstrate;
+  consciousnessState?: ConsciousnessState;
+  pathwayNetwork?: PathwayNetwork;
+  memoryCortex?: MemoryCortexStatus;
 }
 
 export interface AppState {

@@ -14,6 +14,8 @@ import { TelemetryCard } from "./TelemetryCard";
 import { PadBar } from "./PadBar";
 import { ProgressBar } from "./ProgressBar";
 import { Button } from "@/components/ui/button";
+import { ConsciousnessPhaseCard } from "./ConsciousnessPhaseCard";
+import { DevelopmentalPathwaysCard } from "./DevelopmentalPathwaysCard";
 
 interface TelemetrySidebarProps {
   telemetry: TelemetryState;
@@ -246,6 +248,16 @@ export function TelemetrySidebar({ telemetry, compareMode }: TelemetrySidebarPro
           </TelemetryCard>
         )}
 
+        {/* TIER 1: Phase 4 Consciousness */}
+        {telemetry.consciousnessState && (
+          <ConsciousnessPhaseCard state={telemetry.consciousnessState} />
+        )}
+
+        {/* TIER 3: Developmental Pathways */}
+        {telemetry.pathwayNetwork && (
+          <DevelopmentalPathwaysCard network={telemetry.pathwayNetwork} />
+        )}
+
         {/* Memory */}
         <TelemetryCard icon={<Database className="h-4 w-4" />} title="Memory">
           <div className="space-y-3">
@@ -279,6 +291,34 @@ export function TelemetrySidebar({ telemetry, compareMode }: TelemetrySidebarPro
               <span className="text-muted-foreground">Total Memories:</span>
               <span className="font-mono text-foreground">{telemetry.memory.totalMemories}</span>
             </div>
+
+            {/* ChromaDB Cortex Status (TIER 2) */}
+            {telemetry.memoryCortex && (
+              <div className="pt-2 border-t border-border space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-muted-foreground">ChromaDB Status:</span>
+                  <span
+                    className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium ${
+                      telemetry.memoryCortex.chromadb_enabled
+                        ? "bg-success/20 text-success"
+                        : "bg-destructive/20 text-destructive"
+                    }`}
+                  >
+                    {telemetry.memoryCortex.chromadb_enabled ? "🟢 ACTIVE" : "🔴 INACTIVE"}
+                  </span>
+                </div>
+                <div className="flex justify-between text-xs">
+                  <span className="text-muted-foreground">Embedding Model:</span>
+                  <span className="font-mono text-foreground text-xs">
+                    {telemetry.memoryCortex.embedding_model}
+                  </span>
+                </div>
+                <div className="text-xs text-muted-foreground text-center">
+                  Semantic {(telemetry.memoryCortex.semantic_weight * 100).toFixed(0)}% • 
+                  Keyword {(telemetry.memoryCortex.keyword_weight * 100).toFixed(0)}%
+                </div>
+              </div>
+            )}
           </div>
         </TelemetryCard>
 
