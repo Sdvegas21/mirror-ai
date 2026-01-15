@@ -328,7 +328,12 @@ export default function Index() {
       });
       } catch (error) {
         console.error("Error sending message:", error);
-        alert("Failed to send message. Is the backend running?");
+        // Remove user message on failure to prevent UI inconsistency
+        setState((prev) => ({
+          ...prev,
+          standardMessages: prev.standardMessages.filter(m => m.id !== userMessage.id),
+          eosMessages: prev.eosMessages.filter(m => m.id !== userMessage.id),
+        }));
       } finally {
         setIsLoading(false);
       }
