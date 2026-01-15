@@ -138,28 +138,28 @@ export function TelemetrySidebar({ telemetry, compareMode }: TelemetrySidebarPro
               <div className="flex justify-between mb-1">
                 <span className="text-sm text-muted-foreground">Ψ (Psi)</span>
                 <span className="text-sm font-mono text-foreground">
-                  {telemetry.consciousness.psi.toFixed(2)}
+                  {(telemetry.consciousness.psi ?? 0).toFixed(2)}
                 </span>
               </div>
-              <ProgressBar value={telemetry.consciousness.psi} />
+              <ProgressBar value={telemetry.consciousness.psi ?? 0} />
             </div>
             <div>
               <div className="flex justify-between mb-1">
                 <span className="text-sm text-muted-foreground">Φ (Phi)</span>
                 <span className="text-sm font-mono text-foreground">
-                  {telemetry.consciousness.phi.toFixed(2)}
+                  {(telemetry.consciousness.phi ?? 0).toFixed(2)}
                 </span>
               </div>
-              <ProgressBar value={telemetry.consciousness.phi} />
+              <ProgressBar value={telemetry.consciousness.phi ?? 0} />
             </div>
             <div>
               <div className="flex justify-between mb-1">
                 <span className="text-sm text-muted-foreground">Relationship Depth</span>
                 <span className="text-sm font-mono text-foreground">
-                  {telemetry.consciousness.relationshipDepth.toFixed(2)}
+                  {(telemetry.consciousness.relationshipDepth ?? 0).toFixed(2)}
                 </span>
               </div>
-              <ProgressBar value={telemetry.consciousness.relationshipDepth} />
+              <ProgressBar value={telemetry.consciousness.relationshipDepth ?? 0} />
             </div>
             <div className="flex justify-between">
               <span className="text-sm text-muted-foreground">Total Interactions:</span>

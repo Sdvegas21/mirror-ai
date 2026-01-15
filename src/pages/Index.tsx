@@ -45,22 +45,6 @@ const initialState: AppState = {
       personalizedToUser: false,
       temporalAwareness: false,
     },
-    bcpSubstrate: {
-      phi: 0.759,
-      psi: null,
-      rnt: {
-        recursion: 0.425,
-        novelty: 0.5,
-        transformation: 0.5,
-      },
-      cognitive_patterns: {
-        pattern_recognition: 0.85,
-        contextual_analysis: 0.72,
-        emotional_synthesis: 0.68,
-        temporal_mapping: 0.61,
-        recursive_reasoning: 0.55,
-      },
-    },
   },
 };
 
@@ -124,24 +108,38 @@ export default function Index() {
             }));
 
             // Update both EOS and Standard messages with loaded history
-            setState((prev) => ({
-              ...prev,
-              eosMessages: loadedEosMessages,
-              standardMessages: loadedStandardMessages,
-              telemetry: {
-                ...prev.telemetry,
-                chronos: {
-                  ...prev.telemetry.chronos,
-                  sessionMode: "continuation",
-                  continuityStatus: "restored",
+            console.log("📝 Setting state with loaded history:");
+            console.log(`  - EOS messages: ${loadedEosMessages.length}`);
+            console.log(`  - Standard messages: ${loadedStandardMessages.length}`);
+            console.log("  - First EOS message:", loadedEosMessages[0]);
+            console.log("  - First Standard message:", loadedStandardMessages[0]);
+
+            setState((prev) => {
+              const newState = {
+                ...prev,
+                eosMessages: loadedEosMessages,
+                standardMessages: loadedStandardMessages,
+                telemetry: {
+                  ...prev.telemetry,
+                  chronos: {
+                    ...prev.telemetry.chronos,
+                    sessionMode: "continuation" as const,
+                    continuityStatus: "restored" as const,
+                  },
+                  eosAdvantage: {
+                    ...prev.telemetry.eosAdvantage,
+                    maintainedContinuity: true,
+                    rememberedContext: true,
+                  },
                 },
-                eosAdvantage: {
-                  ...prev.telemetry.eosAdvantage,
-                  maintainedContinuity: true,
-                  rememberedContext: true,
-                },
-              },
-            }));
+              };
+
+              console.log("✅ State updated. New message counts:");
+              console.log(`  - EOS: ${newState.eosMessages.length}`);
+              console.log(`  - Standard: ${newState.standardMessages.length}`);
+
+              return newState;
+            });
           } else {
             console.log("No previous conversation history found - fresh session");
           }
@@ -209,8 +207,28 @@ export default function Index() {
         const standardResponse = state.compareMode ? responses[0] : null;
         const eosResponse = state.compareMode ? responses[1] : responses[0];
 
+        // DEBUG: Log the backend response
+        console.log("🔥 EOS Response received:", eosResponse);
+        console.log("🔥 Telemetry data:", eosResponse.telemetry);
+        console.log("🔥 BCP Substrate:", eosResponse.telemetry?.bcpSubstrate);
+
         // Add AI responses
-        setState((prev) => ({
+        setState((prev) => {
+          // Safely merge telemetry data with defaults inside setState
+          const newTelemetry = eosResponse.telemetry ? {
+            ...prev.telemetry,
+            ...eosResponse.telemetry,
+            pad: eosResponse.telemetry.pad || prev.telemetry.pad,
+            consciousness: eosResponse.telemetry.consciousness || prev.telemetry.consciousness,
+            chronos: eosResponse.telemetry.chronos || prev.telemetry.chronos,
+            memory: eosResponse.telemetry.memory || prev.telemetry.memory,
+            eosAdvantage: eosResponse.telemetry.eosAdvantage || prev.telemetry.eosAdvantage,
+            bcpSubstrate: eosResponse.telemetry.bcpSubstrate,
+          } : prev.telemetry;
+
+          console.log("🔥 Merged telemetry state:", newTelemetry);
+
+          return {
           ...prev,
           standardMessages:
             standardResponse && prev.compareMode
@@ -233,8 +251,9 @@ export default function Index() {
               timestamp: eosResponse.timestamp,
             },
           ],
-          telemetry: eosResponse.telemetry || prev.telemetry,
-        }));
+          telemetry: newTelemetry,
+        };
+      });
       } catch (error) {
         console.error("Error sending message:", error);
         alert("Failed to send message. Is the backend running?");
@@ -252,6 +271,13 @@ export default function Index() {
   const handleClearEosChat = useCallback(() => {
     setState((prev) => ({ ...prev, eosMessages: [] }));
   }, []);
+
+  // Debug logging for render
+  console.log("🎨 Rendering Index with message counts:", {
+    eosMessages: state.eosMessages.length,
+    standardMessages: state.standardMessages.length,
+    compareMode: state.compareMode,
+  });
 
   return (
     <div className="flex flex-col min-h-screen bg-background">

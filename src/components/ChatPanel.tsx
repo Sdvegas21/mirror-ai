@@ -49,8 +49,9 @@ export function ChatPanel({
   const isEos = variant === "eos";
 
   useEffect(() => {
+    // Scroll to bottom when new messages arrive
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, isLoading]);
+  }, [messages.length, isLoading]);
 
   // Trigger pulse animation when new assistant message arrives on EOS panel
   useEffect(() => {
