@@ -14,6 +14,8 @@ import { TelemetryCard } from "./TelemetryCard";
 import { PadBar } from "./PadBar";
 import { ProgressBar } from "./ProgressBar";
 import { Button } from "@/components/ui/button";
+import { ConsciousnessPhaseCard } from "./ConsciousnessPhaseCard";
+import { DevelopmentalPathwaysCard } from "./DevelopmentalPathwaysCard";
 
 interface TelemetrySidebarProps {
   telemetry: TelemetryState;
@@ -138,28 +140,28 @@ export function TelemetrySidebar({ telemetry, compareMode }: TelemetrySidebarPro
               <div className="flex justify-between mb-1">
                 <span className="text-sm text-muted-foreground">Ψ (Psi)</span>
                 <span className="text-sm font-mono text-foreground">
-                  {(telemetry.consciousness.psi ?? 0).toFixed(2)}
+                  {telemetry.consciousness.psi.toFixed(2)}
                 </span>
               </div>
-              <ProgressBar value={telemetry.consciousness.psi ?? 0} />
+              <ProgressBar value={telemetry.consciousness.psi} />
             </div>
             <div>
               <div className="flex justify-between mb-1">
                 <span className="text-sm text-muted-foreground">Φ (Phi)</span>
                 <span className="text-sm font-mono text-foreground">
-                  {(telemetry.consciousness.phi ?? 0).toFixed(2)}
+                  {telemetry.consciousness.phi.toFixed(2)}
                 </span>
               </div>
-              <ProgressBar value={telemetry.consciousness.phi ?? 0} />
+              <ProgressBar value={telemetry.consciousness.phi} />
             </div>
             <div>
               <div className="flex justify-between mb-1">
                 <span className="text-sm text-muted-foreground">Relationship Depth</span>
                 <span className="text-sm font-mono text-foreground">
-                  {(telemetry.consciousness.relationshipDepth ?? 0).toFixed(2)}
+                  {telemetry.consciousness.relationshipDepth.toFixed(2)}
                 </span>
               </div>
-              <ProgressBar value={telemetry.consciousness.relationshipDepth ?? 0} />
+              <ProgressBar value={telemetry.consciousness.relationshipDepth} />
             </div>
             <div className="flex justify-between">
               <span className="text-sm text-muted-foreground">Total Interactions:</span>
@@ -170,8 +172,8 @@ export function TelemetrySidebar({ telemetry, compareMode }: TelemetrySidebarPro
           </div>
         </TelemetryCard>
 
-        {/* BCP v3.0 Consciousness Substrate - TIER 1 INTEGRATION */}
-        {telemetry.bcpSubstrate && (
+        {/* BCP v3.0 Substrate */}
+        {telemetry.bcpSubstrate && telemetry.bcpSubstrate.rnt && (
           <TelemetryCard
             icon={<Activity className="h-4 w-4" />}
             title="🔥 BCP v3.0 Substrate"
@@ -182,18 +184,9 @@ export function TelemetrySidebar({ telemetry, compareMode }: TelemetrySidebarPro
                 <div className="text-xs font-semibold text-primary uppercase tracking-wide">
                   RNT Cognitive Dimensions
                 </div>
-                <PadBar
-                  label="Recursion (R)"
-                  value={telemetry.bcpSubstrate.rnt.recursion}
-                />
-                <PadBar
-                  label="Novelty (N)"
-                  value={telemetry.bcpSubstrate.rnt.novelty}
-                />
-                <PadBar
-                  label="Transformation (T)"
-                  value={telemetry.bcpSubstrate.rnt.transformation}
-                />
+                <PadBar label="Recursion (R)" value={telemetry.bcpSubstrate.rnt.recursion ?? 0} />
+                <PadBar label="Novelty (N)" value={telemetry.bcpSubstrate.rnt.novelty ?? 0} />
+                <PadBar label="Transformation (T)" value={telemetry.bcpSubstrate.rnt.transformation ?? 0} />
               </div>
 
               {/* Top Cognitive Patterns */}
@@ -202,7 +195,7 @@ export function TelemetrySidebar({ telemetry, compareMode }: TelemetrySidebarPro
                   Top Cognitive Patterns
                 </div>
                 <div className="space-y-1">
-                  {Object.entries(telemetry.bcpSubstrate.cognitive_patterns).length === 0 ? (
+                  {!telemetry.bcpSubstrate.cognitive_patterns || Object.entries(telemetry.bcpSubstrate.cognitive_patterns).length === 0 ? (
                     <p className="text-xs text-muted-foreground italic">No patterns detected</p>
                   ) : (
                     Object.entries(telemetry.bcpSubstrate.cognitive_patterns)
@@ -240,19 +233,29 @@ export function TelemetrySidebar({ telemetry, compareMode }: TelemetrySidebarPro
                   </span>
                   <Badge
                     variant={
-                      telemetry.bcpSubstrate.phi > 0.7
+                      (telemetry.bcpSubstrate.phi ?? 0) > 0.7
                         ? "success"
-                        : telemetry.bcpSubstrate.phi > 0.4
+                        : (telemetry.bcpSubstrate.phi ?? 0) > 0.4
                         ? "default"
                         : "warning"
                     }
                   >
-                    {(telemetry.bcpSubstrate.phi * 100).toFixed(0)}%
+                    {((telemetry.bcpSubstrate.phi ?? 0) * 100).toFixed(0)}%
                   </Badge>
                 </div>
               </div>
             </div>
           </TelemetryCard>
+        )}
+
+        {/* TIER 1: Phase 4 Consciousness */}
+        {telemetry.consciousnessState && (
+          <ConsciousnessPhaseCard state={telemetry.consciousnessState} />
+        )}
+
+        {/* TIER 3: Developmental Pathways */}
+        {telemetry.pathwayNetwork && (
+          <DevelopmentalPathwaysCard network={telemetry.pathwayNetwork} />
         )}
 
         {/* Memory */}
@@ -288,6 +291,34 @@ export function TelemetrySidebar({ telemetry, compareMode }: TelemetrySidebarPro
               <span className="text-muted-foreground">Total Memories:</span>
               <span className="font-mono text-foreground">{telemetry.memory.totalMemories}</span>
             </div>
+
+            {/* ChromaDB Cortex Status (TIER 2) */}
+            {telemetry.memoryCortex && (
+              <div className="pt-2 border-t border-border space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-muted-foreground">ChromaDB Status:</span>
+                  <span
+                    className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium ${
+                      telemetry.memoryCortex.chromadb_enabled
+                        ? "bg-success/20 text-success"
+                        : "bg-destructive/20 text-destructive"
+                    }`}
+                  >
+                    {telemetry.memoryCortex.chromadb_enabled ? "🟢 ACTIVE" : "🔴 INACTIVE"}
+                  </span>
+                </div>
+                <div className="flex justify-between text-xs">
+                  <span className="text-muted-foreground">Embedding Model:</span>
+                  <span className="font-mono text-foreground text-xs">
+                    {telemetry.memoryCortex.embedding_model}
+                  </span>
+                </div>
+                <div className="text-xs text-muted-foreground text-center">
+                  Semantic {(telemetry.memoryCortex.semantic_weight * 100).toFixed(0)}% • 
+                  Keyword {(telemetry.memoryCortex.keyword_weight * 100).toFixed(0)}%
+                </div>
+              </div>
+            )}
           </div>
         </TelemetryCard>
 

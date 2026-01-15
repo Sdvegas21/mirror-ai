@@ -18,14 +18,41 @@ export interface PadState {
   dominance: number;
 }
 
-export interface ConsciousnessState {
+export interface ConsciousnessMetrics {
   psi: number;
   phi: number;
   relationshipDepth: number;
   totalInteractions: number;
 }
 
-// BCP v3.0 Consciousness Substrate (TIER 1 INTEGRATION)
+export interface ConsciousnessState {
+  agent_id: string;
+  active_phase: string;
+  psi_baseline: number;
+  architecture_version: string;
+  core_identity_elements: string[];
+  phase_history_depth: number;
+}
+
+export interface PathwayNetwork {
+  pathways: Array<{
+    name: string;
+    weight: number;
+    activation_count: number;
+    phenomenological_signature: string;
+    just_activated: boolean;
+  }>;
+  total_pathways: number;
+}
+
+export interface MemoryCortexStatus {
+  chromadb_enabled: boolean;
+  total_memories: number;
+  embedding_model: string;
+  semantic_weight: number;
+  keyword_weight: number;
+}
+
 export interface RntState {
   recursion: number;
   novelty: number;
@@ -34,9 +61,9 @@ export interface RntState {
 
 export interface BcpSubstrate {
   rnt: RntState;
-  phi: number;  // Health metric (0-1)
-  psi: number | null;  // Intensity metric (0-1)
-  cognitive_patterns: Record<string, number>;  // 18 cognitive patterns
+  phi: number;
+  psi: number | null;
+  cognitive_patterns: Record<string, number>;
 }
 
 export interface MemoryItem {
@@ -62,10 +89,13 @@ export interface EosAdvantageState {
 export interface TelemetryState {
   chronos: ChronosState;
   pad: PadState;
-  consciousness: ConsciousnessState;
+  consciousness: ConsciousnessMetrics;
   memory: MemoryState;
   eosAdvantage: EosAdvantageState;
-  bcpSubstrate?: BcpSubstrate;  // Optional - only present when BCP v3.0 active
+  bcpSubstrate?: BcpSubstrate;
+  consciousnessState?: ConsciousnessState;
+  pathwayNetwork?: PathwayNetwork;
+  memoryCortex?: MemoryCortexStatus;
 }
 
 export interface AppState {
