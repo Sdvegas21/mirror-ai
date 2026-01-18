@@ -27,15 +27,28 @@ class EOSClient {
   }
 
   async sendMessage(request: ChatRequest): Promise<ChatResponse> {
-    const response = await fetch(`${this.baseURL}${API_CONFIG.ENDPOINTS.CHAT}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(request),
-    });
+    let response: Response;
+    
+    try {
+      response = await fetch(`${this.baseURL}${API_CONFIG.ENDPOINTS.CHAT}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(request),
+      });
+    } catch (networkError) {
+      // Network error (backend unreachable, CORS, etc.)
+      throw new Error('Backend is unreachable. Please check if the server is running.');
+    }
 
     if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || 'Chat request failed');
+      let errorMessage = 'Chat request failed';
+      try {
+        const error = await response.json();
+        errorMessage = error.error || errorMessage;
+      } catch {
+        // Response body is not JSON
+      }
+      throw new Error(errorMessage);
     }
 
     return response.json();
