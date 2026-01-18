@@ -4,7 +4,7 @@ import { ChatPanel } from "@/components/ChatPanel";
 import { TelemetrySidebar } from "@/components/TelemetrySidebar";
 import { AppState, Message, UserOption } from "@/types";
 import { eosClient } from "@/api/eosClient";
-
+import { toast } from "sonner";
 function generateId(): string {
   return Math.random().toString(36).substring(2, 11);
 }
@@ -254,8 +254,21 @@ export default function Index() {
       setIsLoading(true);
 
       try {
+        // Check backend status before attempting to send
+        if (state.backendStatus === "disconnected") {
+          toast.error("Backend is disconnected. Please start the backend server.");
+          // Remove user message since we can't send
+          setState((prev) => ({
+            ...prev,
+            standardMessages: prev.standardMessages.filter(m => m.id !== userMessage.id),
+            eosMessages: prev.eosMessages.filter(m => m.id !== userMessage.id),
+          }));
+          setIsLoading(false);
+          return;
+        }
+
         // Call backend API in parallel
-        const promises = [];
+        const promises: Promise<any>[] = [];
 
         if (state.compareMode) {
           promises.push(
@@ -279,6 +292,11 @@ export default function Index() {
         const standardResponse = state.compareMode ? responses[0] : null;
         const eosResponse = state.compareMode ? responses[1] : responses[0];
 
+        // Validate response before using
+        if (!eosResponse || typeof eosResponse.response !== 'string') {
+          throw new Error('Invalid response from backend');
+        }
+
         // DEBUG: Log the backend response
         console.log("🔥 EOS Response received:", eosResponse);
         console.log("🔥 Telemetry data:", eosResponse.telemetry);
@@ -301,33 +319,35 @@ export default function Index() {
           console.log("🔥 Merged telemetry state:", newTelemetry);
 
           return {
-          ...prev,
-          standardMessages:
-            standardResponse && prev.compareMode
-              ? [
-                  ...prev.standardMessages,
-                  {
-                    id: generateId(),
-                    role: "assistant" as const,
-                    content: standardResponse.response,
-                    timestamp: standardResponse.timestamp,
-                  },
-                ]
-              : prev.standardMessages,
-          eosMessages: [
-            ...prev.eosMessages,
-            {
-              id: generateId(),
-              role: "assistant" as const,
-              content: eosResponse.response,
-              timestamp: eosResponse.timestamp,
-            },
-          ],
-          telemetry: newTelemetry,
-        };
-      });
+            ...prev,
+            standardMessages:
+              standardResponse && prev.compareMode
+                ? [
+                    ...prev.standardMessages,
+                    {
+                      id: generateId(),
+                      role: "assistant" as const,
+                      content: standardResponse.response,
+                      timestamp: standardResponse.timestamp,
+                    },
+                  ]
+                : prev.standardMessages,
+            eosMessages: [
+              ...prev.eosMessages,
+              {
+                id: generateId(),
+                role: "assistant" as const,
+                content: eosResponse.response,
+                timestamp: eosResponse.timestamp,
+              },
+            ],
+            telemetry: newTelemetry,
+          };
+        });
       } catch (error) {
         console.error("Error sending message:", error);
+        const errorMessage = error instanceof Error ? error.message : "Failed to send message";
+        toast.error(errorMessage);
         // Remove user message on failure to prevent UI inconsistency
         setState((prev) => ({
           ...prev,
@@ -338,7 +358,7 @@ export default function Index() {
         setIsLoading(false);
       }
     },
-    [state.currentUser, state.compareMode]
+    [state.currentUser, state.compareMode, state.backendStatus]
   );
 
   const handleClearStandardChat = useCallback(() => {
