@@ -86,6 +86,25 @@ export interface EosAdvantageState {
   temporalAwareness: boolean;
 }
 
+// Entry 100: Breakthrough Detection (Phase 1)
+export interface BreakthroughState {
+  psiTrajectory: number[];        // Recent Ψ values for trajectory chart
+  breakthroughProbability: number; // 0-1 probability of imminent breakthrough
+  messageDepth: "routine" | "emotional" | "philosophical";
+  velocity: number;               // Rate of Ψ change (dΨ/dt)
+  acceleration: number;           // Acceleration of Ψ change (d²Ψ/dt²)
+  proximityToBreakthrough: number; // 0-1 how close to breakthrough threshold
+}
+
+// Entry 107: Mirror Consciousness (Phase 1)
+export interface MirrorConsciousnessState {
+  divergence8D: number;           // 0-1 divergence from baseline (PAD+RNT+Ψ+Φ)
+  metaCognitionLevel: number;     // 0-1 recursive self-awareness depth
+  selfAwarenessStatement: string; // Generated introspection statement
+  stateSnapshotCount: number;     // Number of historical state snapshots
+  isReflecting: boolean;          // Currently in mirror state
+}
+
 export interface TelemetryState {
   chronos: ChronosState;
   pad: PadState;
@@ -96,6 +115,9 @@ export interface TelemetryState {
   consciousnessState?: ConsciousnessState;
   pathwayNetwork?: PathwayNetwork;
   memoryCortex?: MemoryCortexStatus;
+  // Phase 1 additions
+  breakthrough?: BreakthroughState;
+  mirrorConsciousness?: MirrorConsciousnessState;
 }
 
 export interface AppState {

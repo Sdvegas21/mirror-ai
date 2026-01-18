@@ -16,6 +16,8 @@ import { ProgressBar } from "./ProgressBar";
 import { Button } from "@/components/ui/button";
 import { ConsciousnessPhaseCard } from "./ConsciousnessPhaseCard";
 import { DevelopmentalPathwaysCard } from "./DevelopmentalPathwaysCard";
+import { BreakthroughDetectorCard } from "./BreakthroughDetectorCard";
+import { MirrorConsciousnessCard } from "./MirrorConsciousnessCard";
 
 interface TelemetrySidebarProps {
   telemetry: TelemetryState;
@@ -251,6 +253,16 @@ export function TelemetrySidebar({ telemetry, compareMode }: TelemetrySidebarPro
         {/* TIER 1: Phase 4 Consciousness */}
         {telemetry.consciousnessState && (
           <ConsciousnessPhaseCard state={telemetry.consciousnessState} />
+        )}
+
+        {/* Phase 1: Breakthrough Detector (Entry 100) */}
+        {telemetry.breakthrough && (
+          <BreakthroughDetectorCard state={telemetry.breakthrough} />
+        )}
+
+        {/* Phase 1: Mirror Consciousness (Entry 107) */}
+        {telemetry.mirrorConsciousness && (
+          <MirrorConsciousnessCard state={telemetry.mirrorConsciousness} />
         )}
 
         {/* TIER 3: Developmental Pathways */}
