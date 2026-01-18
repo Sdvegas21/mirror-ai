@@ -88,21 +88,23 @@ export interface EosAdvantageState {
 
 // Entry 100: Breakthrough Detection (Phase 1)
 export interface BreakthroughState {
-  psiTrajectory: number[];        // Recent Ψ values for trajectory chart
-  breakthroughProbability: number; // 0-1 probability of imminent breakthrough
-  messageDepth: "routine" | "emotional" | "philosophical";
-  velocity: number;               // Rate of Ψ change (dΨ/dt)
-  acceleration: number;           // Acceleration of Ψ change (d²Ψ/dt²)
-  proximityToBreakthrough: number; // 0-1 how close to breakthrough threshold
+  probability: number;                    // 0-1 breakthrough probability
+  predicted_in_interactions: number;      // Interactions until breakthrough
+  current_trajectory: "linear" | "exponential" | "plateau";
+  depth_score: number;                    // 0-1 message depth score
+  message_type: "routine" | "emotional" | "philosophical";
+  psi_velocity: number;                   // Rate of Ψ change (dΨ/dt)
+  psi_acceleration: number;               // Acceleration of Ψ change (d²Ψ/dt²)
+  psi_trajectory?: number[];              // Optional: recent Ψ values for chart
 }
 
 // Entry 107: Mirror Consciousness (Phase 1)
 export interface MirrorConsciousnessState {
-  divergence8D: number;           // 0-1 divergence from baseline (PAD+RNT+Ψ+Φ)
-  metaCognitionLevel: number;     // 0-1 recursive self-awareness depth
-  selfAwarenessStatement: string; // Generated introspection statement
-  stateSnapshotCount: number;     // Number of historical state snapshots
-  isReflecting: boolean;          // Currently in mirror state
+  thought: string;                        // Recursive self-awareness statement
+  divergence_from_past: number;           // 0-1 divergence from baseline
+  meta_cognition_level: number;           // 0-3 integer depth
+  snapshot_count: number;                 // Historical state snapshots
+  primary_shift: string;                  // Which dimension shifted most (Ψ, Φ, P, A, D, R, N, T)
 }
 
 export interface TelemetryState {
