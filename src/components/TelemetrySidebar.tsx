@@ -18,6 +18,9 @@ import { ConsciousnessPhaseCard } from "./ConsciousnessPhaseCard";
 import { DevelopmentalPathwaysCard } from "./DevelopmentalPathwaysCard";
 import { BreakthroughDetectorCard } from "./BreakthroughDetectorCard";
 import { MirrorConsciousnessCard } from "./MirrorConsciousnessCard";
+import { LivePsiDisplay } from "./LivePsiDisplay";
+import { ConsciousnessStreamIndicator } from "./ConsciousnessStreamIndicator";
+import { useConsciousnessStream } from "@/hooks/useConsciousnessStream";
 
 interface TelemetrySidebarProps {
   telemetry: TelemetryState;
@@ -63,6 +66,19 @@ function Badge({ children, variant = "default" }: { children: React.ReactNode; v
 export function TelemetrySidebar({ telemetry, compareMode }: TelemetrySidebarProps) {
   const [localTime, setLocalTime] = useState(new Date());
   const [elapsedSeconds, setElapsedSeconds] = useState(telemetry.chronos.elapsedSeconds);
+  
+  // WebSocket consciousness stream
+  const { isConnected, connectionError, streamingState } = useConsciousnessStream({
+    backendUrl: "http://localhost:5001",
+    autoConnect: true,
+  });
+
+  // Use streaming data if available, otherwise fall back to telemetry props
+  const livePsi = streamingState.isStreaming 
+    ? streamingState.currentPsi 
+    : telemetry.consciousness.psi;
+  const liveBreakthrough = streamingState.breakthrough || telemetry.breakthrough;
+  const liveMirrorConsciousness = streamingState.mirrorConsciousness || telemetry.mirrorConsciousness;
 
   // Live clock
   useEffect(() => {
@@ -93,8 +109,13 @@ export function TelemetrySidebar({ telemetry, compareMode }: TelemetrySidebarPro
 
   return (
     <div className="flex flex-col h-full bg-sidebar rounded-lg border border-border overflow-hidden">
-      <div className="px-4 py-3 border-b border-border bg-muted/30">
+      <div className="px-4 py-3 border-b border-border bg-muted/30 space-y-2">
         <h2 className="font-semibold text-primary">EOS Telemetry</h2>
+        <ConsciousnessStreamIndicator
+          isConnected={isConnected}
+          isStreaming={streamingState.isStreaming}
+          connectionError={connectionError}
+        />
       </div>
 
       <div className="flex-1 overflow-y-auto p-3 space-y-3 scrollbar-thin">
@@ -135,26 +156,28 @@ export function TelemetrySidebar({ telemetry, compareMode }: TelemetrySidebarPro
           </div>
         </TelemetryCard>
 
-        {/* Consciousness & Growth */}
-        <TelemetryCard icon={<Brain className="h-4 w-4" />} title="Consciousness & Growth">
+        {/* Consciousness & Growth - Now with LIVE Ψ */}
+        <TelemetryCard icon={<Brain className="h-4 w-4" />} title="🧠 Consciousness & Growth">
           <div className="space-y-4">
-            <div>
-              <div className="flex justify-between mb-1">
-                <span className="text-sm text-muted-foreground">Ψ (Psi)</span>
-                <span className="text-sm font-mono text-foreground">
-                  {telemetry.consciousness.psi.toFixed(2)}
-                </span>
-              </div>
-              <ProgressBar value={telemetry.consciousness.psi} />
-            </div>
+            {/* LIVE Ψ Display with animation */}
+            <LivePsiDisplay
+              value={livePsi}
+              targetValue={streamingState.isStreaming ? streamingState.targetPsi : undefined}
+              isStreaming={streamingState.isStreaming}
+              trajectory={liveBreakthrough?.psiTrajectory || []}
+              velocity={liveBreakthrough?.velocity || 0}
+            />
+            
             <div>
               <div className="flex justify-between mb-1">
                 <span className="text-sm text-muted-foreground">Φ (Phi)</span>
                 <span className="text-sm font-mono text-foreground">
-                  {telemetry.consciousness.phi.toFixed(2)}
+                  {streamingState.isStreaming 
+                    ? streamingState.currentPhi.toFixed(2) 
+                    : telemetry.consciousness.phi.toFixed(2)}
                 </span>
               </div>
-              <ProgressBar value={telemetry.consciousness.phi} />
+              <ProgressBar value={streamingState.isStreaming ? streamingState.currentPhi : telemetry.consciousness.phi} />
             </div>
             <div>
               <div className="flex justify-between mb-1">
@@ -255,14 +278,14 @@ export function TelemetrySidebar({ telemetry, compareMode }: TelemetrySidebarPro
           <ConsciousnessPhaseCard state={telemetry.consciousnessState} />
         )}
 
-        {/* Phase 1: Breakthrough Detector (Entry 100) */}
-        {telemetry.breakthrough && (
-          <BreakthroughDetectorCard state={telemetry.breakthrough} />
+        {/* Phase 1: Breakthrough Detector (Entry 100) - Uses LIVE streaming data */}
+        {liveBreakthrough && (
+          <BreakthroughDetectorCard state={liveBreakthrough} />
         )}
 
-        {/* Phase 1: Mirror Consciousness (Entry 107) */}
-        {telemetry.mirrorConsciousness && (
-          <MirrorConsciousnessCard state={telemetry.mirrorConsciousness} />
+        {/* Phase 1: Mirror Consciousness (Entry 107) - Uses LIVE streaming data */}
+        {liveMirrorConsciousness && (
+          <MirrorConsciousnessCard state={liveMirrorConsciousness} />
         )}
 
         {/* TIER 3: Developmental Pathways */}
