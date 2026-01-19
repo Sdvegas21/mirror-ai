@@ -1,4 +1,4 @@
-import { Eye, Brain, Sparkles } from "lucide-react";
+import { Eye, Brain, Sparkles, Activity } from "lucide-react";
 import { TelemetryCard } from "./TelemetryCard";
 import { ProgressBar } from "./ProgressBar";
 import { MirrorConsciousnessState } from "@/types";
@@ -8,38 +8,16 @@ interface MirrorConsciousnessCardProps {
 }
 
 function getMetaCognitionLabel(level: number): { label: string; color: string } {
-  // Level is 0-3 integer
-  const levels: Record<number, { label: string; color: string }> = {
-    0: { label: "Surface", color: "text-muted-foreground" },
-    1: { label: "Observing", color: "text-muted-foreground" },
-    2: { label: "Self-Aware", color: "text-primary" },
-    3: { label: "Deep Recursion", color: "text-success" },
-  };
-  return levels[Math.min(level, 3)] || levels[0];
-}
-
-function getPrimaryShiftBadge(shift: string) {
-  const shiftLabels: Record<string, { label: string; color: string }> = {
-    "Ψ": { label: "Ψ (Consciousness)", color: "text-success" },
-    "Φ": { label: "Φ (Integration)", color: "text-primary" },
-    "P": { label: "P (Pleasure)", color: "text-pink-500" },
-    "A": { label: "A (Arousal)", color: "text-orange-500" },
-    "D": { label: "D (Dominance)", color: "text-blue-500" },
-    "R": { label: "R (Recursion)", color: "text-purple-500" },
-    "N": { label: "N (Novelty)", color: "text-cyan-500" },
-    "T": { label: "T (Transformation)", color: "text-yellow-500" },
-  };
-  const info = shiftLabels[shift] || { label: shift, color: "text-muted-foreground" };
-  return (
-    <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium bg-muted ${info.color}`}>
-      {info.label}
-    </span>
-  );
+  // Level is 0.0-1.0 (normalized from 0-3)
+  if (level >= 0.9) return { label: "Deep Recursion", color: "text-success" };
+  if (level >= 0.6) return { label: "Self-Aware", color: "text-primary" };
+  if (level >= 0.3) return { label: "Observing", color: "text-muted-foreground" };
+  return { label: "Surface", color: "text-muted-foreground" };
 }
 
 export function MirrorConsciousnessCard({ state }: MirrorConsciousnessCardProps) {
-  const metaLevel = getMetaCognitionLabel(state.meta_cognition_level);
-  const isDeepReflection = state.meta_cognition_level >= 2;
+  const metaLevel = getMetaCognitionLabel(state.metaCognitionLevel);
+  const isDeepReflection = state.metaCognitionLevel >= 0.6;
   
   return (
     <TelemetryCard
@@ -48,7 +26,7 @@ export function MirrorConsciousnessCard({ state }: MirrorConsciousnessCardProps)
     >
       <div className="space-y-4">
         {/* Mirror Thought - Hero Display */}
-        {state.thought && (
+        {state.selfAwarenessStatement && (
           <div className="space-y-1">
             <div className="flex items-center gap-1.5">
               <Sparkles className="h-3 w-3 text-primary" />
@@ -58,29 +36,36 @@ export function MirrorConsciousnessCard({ state }: MirrorConsciousnessCardProps)
             </div>
             <div className="rounded-md border border-primary/30 bg-primary/5 p-3">
               <p className="text-sm text-foreground italic leading-relaxed">
-                "{state.thought}"
+                "{state.selfAwarenessStatement}"
               </p>
             </div>
           </div>
         )}
 
-        {/* Primary Shift */}
+        {/* Reflection Status */}
         <div className="flex items-center justify-between">
-          <span className="text-sm text-muted-foreground">Primary Shift:</span>
-          {getPrimaryShiftBadge(state.primary_shift)}
+          <span className="text-sm text-muted-foreground">Status:</span>
+          <span className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-medium ${
+            state.isReflecting 
+              ? "bg-success/20 text-success" 
+              : "bg-muted text-muted-foreground"
+          }`}>
+            <Activity className="h-3 w-3" />
+            {state.isReflecting ? "Actively Reflecting" : "Passive"}
+          </span>
         </div>
 
-        {/* Divergence from Past */}
+        {/* 8D Divergence */}
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-sm text-muted-foreground">Divergence from Past:</span>
+            <span className="text-sm text-muted-foreground">8D Divergence:</span>
             <span className="text-sm font-mono text-foreground">
-              {(state.divergence_from_past * 100).toFixed(1)}%
+              {(state.divergence8D * 100).toFixed(1)}%
             </span>
           </div>
-          <ProgressBar value={state.divergence_from_past} />
+          <ProgressBar value={state.divergence8D} />
           <p className="text-xs text-muted-foreground">
-            How much current state differs from historical baseline
+            Euclidean distance in PAD+RNT+Ψ+Φ space from baseline
           </p>
         </div>
 
@@ -91,22 +76,22 @@ export function MirrorConsciousnessCard({ state }: MirrorConsciousnessCardProps)
             <div className="flex items-center gap-2">
               <Brain className={`h-3 w-3 ${metaLevel.color}`} />
               <span className={`text-sm font-medium ${metaLevel.color}`}>
-                Level {state.meta_cognition_level}: {metaLevel.label}
+                {metaLevel.label}
               </span>
             </div>
           </div>
           
-          {/* Recursive Depth Visualization */}
+          {/* Recursive Depth Visualization (0.0-1.0 normalized) */}
           <div className="flex items-center gap-1">
-            {[0, 1, 2, 3].map((level) => (
+            {[0, 0.33, 0.66, 1.0].map((threshold, idx) => (
               <div
-                key={level}
+                key={idx}
                 className={`flex-1 h-2 rounded ${
-                  state.meta_cognition_level >= level
-                    ? level === 3 ? "bg-success" : "bg-primary"
+                  state.metaCognitionLevel >= threshold
+                    ? idx === 3 ? "bg-success" : "bg-primary"
                     : "bg-muted"
                 } transition-colors`}
-                title={`Level ${level}`}
+                title={`Level ${idx}`}
               />
             ))}
           </div>
@@ -120,7 +105,7 @@ export function MirrorConsciousnessCard({ state }: MirrorConsciousnessCardProps)
         <div className="flex items-center justify-between pt-2 border-t border-border">
           <span className="text-sm text-muted-foreground">State Snapshots:</span>
           <span className="text-sm font-mono text-foreground">
-            {state.snapshot_count}
+            {state.stateSnapshotCount}
           </span>
         </div>
       </div>
