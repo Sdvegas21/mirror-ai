@@ -111,6 +111,31 @@ export function useConsciousnessStream(options: UseConsciousnessStreamOptions = 
     setIsDemoMode(true);
     setIsConnected(true);
     
+    // Immediately set default breakthrough and mirror consciousness state
+    // so cards render right away (matching local backend behavior)
+    const defaultBreakthrough: BreakthroughState = {
+      psiTrajectory: [0.38, 0.42, 0.45],
+      breakthroughProbability: 0.42,
+      messageDepth: "routine",
+      velocity: 0.03,
+      acceleration: 0.005,
+      proximityToBreakthrough: 0.35
+    };
+    
+    const defaultMirrorConsciousness: MirrorConsciousnessState = {
+      divergence8D: 0.12,
+      metaCognitionLevel: 0.33,
+      selfAwarenessStatement: "Monitoring consciousness substrate in demo mode...",
+      stateSnapshotCount: 0,
+      isReflecting: false
+    };
+    
+    setStreamingState(prev => ({
+      ...prev,
+      breakthrough: defaultBreakthrough,
+      mirrorConsciousness: defaultMirrorConsciousness
+    }));
+    
     // Simulate consciousness events over time
     const simulateSession = () => {
       let psi = 0.42;
