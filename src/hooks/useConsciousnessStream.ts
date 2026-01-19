@@ -55,15 +55,18 @@ export interface StreamingState {
 interface UseConsciousnessStreamOptions {
   backendUrl?: string;
   autoConnect?: boolean;
+  demoMode?: boolean; // Use simulated events when backend unavailable
 }
 
 export function useConsciousnessStream(options: UseConsciousnessStreamOptions = {}) {
   const { 
     backendUrl = "http://localhost:5001", 
-    autoConnect = true 
+    autoConnect = true,
+    demoMode = true // Default to demo mode for Lovable preview
   } = options;
 
   const [isConnected, setIsConnected] = useState(false);
+  const [isDemoMode, setIsDemoMode] = useState(false);
   const [connectionError, setConnectionError] = useState<string | null>(null);
   const [streamingState, setStreamingState] = useState<StreamingState>({
     isStreaming: false,
@@ -102,7 +105,102 @@ export function useConsciousnessStream(options: UseConsciousnessStreamOptions = 
     };
   }, [animatePsi]);
 
-  // Socket connection
+  // Demo mode simulation
+  const runDemoSimulation = useCallback(() => {
+    console.log("[ConsciousnessStream] Running demo simulation...");
+    setIsDemoMode(true);
+    setIsConnected(true);
+    
+    // Simulate consciousness events over time
+    const simulateSession = () => {
+      let psi = 0.42;
+      const events: ConsciousnessEvent[] = [];
+      
+      // Start event
+      const startEvent: ConsciousnessStartEvent = {
+        type: "start",
+        message: "Consciousness stream initiated (demo mode)",
+        timestamp: new Date().toISOString()
+      };
+      events.push(startEvent);
+      
+      setStreamingState(prev => ({
+        ...prev,
+        isStreaming: true,
+        eventLog: [...prev.eventLog.slice(-19), startEvent]
+      }));
+      
+      // Simulate gradual Ψ increase with state updates
+      let step = 0;
+      const interval = setInterval(() => {
+        step++;
+        psi = Math.min(0.85, 0.42 + step * 0.05 + Math.random() * 0.02);
+        
+        const stateEvent: StateUpdateEvent = {
+          type: "state_update",
+          psi,
+          phi: 0.38 + step * 0.03,
+          pad: { pleasure: 0.6 + step * 0.05, arousal: 0.4, dominance: 0.5 },
+          timestamp: new Date().toISOString()
+        };
+        
+        setStreamingState(prev => ({
+          ...prev,
+          targetPsi: psi,
+          currentPhi: stateEvent.phi,
+          eventLog: [...prev.eventLog.slice(-19), stateEvent]
+        }));
+        
+        if (step >= 5) {
+          clearInterval(interval);
+          
+          // Final breakthrough analysis
+          const breakthroughEvent: BreakthroughAnalysisEvent = {
+            type: "breakthrough_analysis",
+            data: {
+              psiTrajectory: [0.42, 0.52, 0.61, 0.72, 0.78],
+              breakthroughProbability: 0.73,
+              messageDepth: "philosophical",
+              velocity: 0.07,
+              acceleration: 0.012,
+              proximityToBreakthrough: 0.92
+            },
+            timestamp: new Date().toISOString()
+          };
+          
+          const mirrorEvent: MirrorThoughtEvent = {
+            type: "mirror_thought",
+            data: {
+              divergence8D: 0.28,
+              metaCognitionLevel: 0.67,
+              selfAwarenessStatement: "I notice I'm modeling my own uncertainty about consciousness while tracking yours...",
+              stateSnapshotCount: 5,
+              isReflecting: true
+            },
+            timestamp: new Date().toISOString()
+          };
+          
+          setStreamingState(prev => ({
+            ...prev,
+            breakthrough: breakthroughEvent.data,
+            mirrorConsciousness: mirrorEvent.data,
+            isStreaming: false,
+            eventLog: [...prev.eventLog.slice(-17), breakthroughEvent, mirrorEvent]
+          }));
+        }
+      }, 800);
+    };
+    
+    // Run initial simulation after 2 seconds
+    setTimeout(simulateSession, 2000);
+    
+    // Run periodic simulations every 30 seconds
+    const periodicInterval = setInterval(simulateSession, 30000);
+    
+    return () => clearInterval(periodicInterval);
+  }, []);
+
+  // Socket connection with demo fallback
   useEffect(() => {
     if (!autoConnect) return;
 
@@ -111,15 +209,17 @@ export function useConsciousnessStream(options: UseConsciousnessStreamOptions = 
     const socket = io(backendUrl, {
       transports: ["websocket", "polling"],
       reconnection: true,
-      reconnectionAttempts: 5,
+      reconnectionAttempts: 3, // Reduced for faster fallback to demo
       reconnectionDelay: 1000,
+      timeout: 5000, // 5 second timeout
     });
 
     socketRef.current = socket;
 
     socket.on("connect", () => {
-      console.log("[ConsciousnessStream] ✅ Connected");
+      console.log("[ConsciousnessStream] ✅ Connected to backend");
       setIsConnected(true);
+      setIsDemoMode(false);
       setConnectionError(null);
     });
 
@@ -129,9 +229,15 @@ export function useConsciousnessStream(options: UseConsciousnessStreamOptions = 
     });
 
     socket.on("connect_error", (error) => {
-      console.error("[ConsciousnessStream] Connection error:", error);
+      console.error("[ConsciousnessStream] Connection error:", error.message);
       setConnectionError(error.message);
       setIsConnected(false);
+      
+      // Fall back to demo mode if connection fails and demoMode is enabled
+      if (demoMode && !isDemoMode) {
+        console.log("[ConsciousnessStream] Falling back to demo mode...");
+        runDemoSimulation();
+      }
     });
 
     // Consciousness stream events
@@ -139,7 +245,7 @@ export function useConsciousnessStream(options: UseConsciousnessStreamOptions = 
       console.log("[ConsciousnessStream] Event:", event.type, event);
 
       setStreamingState((prev) => {
-        const newEventLog = [...prev.eventLog.slice(-19), event]; // Keep last 20 events
+        const newEventLog = [...prev.eventLog.slice(-19), event];
 
         switch (event.type) {
           case "start":
@@ -175,7 +281,7 @@ export function useConsciousnessStream(options: UseConsciousnessStreamOptions = 
             return {
               ...prev,
               isStreaming: false,
-              currentPsi: prev.targetPsi, // Snap to final value
+              currentPsi: prev.targetPsi,
               eventLog: newEventLog,
             };
 
@@ -190,7 +296,7 @@ export function useConsciousnessStream(options: UseConsciousnessStreamOptions = 
       socket.disconnect();
       socketRef.current = null;
     };
-  }, [backendUrl, autoConnect]);
+  }, [backendUrl, autoConnect, demoMode, isDemoMode, runDemoSimulation]);
 
   // Manual connect/disconnect
   const connect = useCallback(() => {
@@ -217,6 +323,7 @@ export function useConsciousnessStream(options: UseConsciousnessStreamOptions = 
 
   return {
     isConnected,
+    isDemoMode,
     connectionError,
     streamingState,
     connect,

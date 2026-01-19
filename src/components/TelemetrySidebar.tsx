@@ -67,10 +67,11 @@ export function TelemetrySidebar({ telemetry, compareMode }: TelemetrySidebarPro
   const [localTime, setLocalTime] = useState(new Date());
   const [elapsedSeconds, setElapsedSeconds] = useState(telemetry.chronos.elapsedSeconds);
   
-  // WebSocket consciousness stream
-  const { isConnected, connectionError, streamingState } = useConsciousnessStream({
+  // WebSocket consciousness stream with demo fallback
+  const { isConnected, isDemoMode, connectionError, streamingState } = useConsciousnessStream({
     backendUrl: "http://localhost:5001",
     autoConnect: true,
+    demoMode: true, // Enable demo mode for Lovable preview
   });
 
   // Use streaming data if available, otherwise fall back to telemetry props
@@ -114,6 +115,7 @@ export function TelemetrySidebar({ telemetry, compareMode }: TelemetrySidebarPro
         <ConsciousnessStreamIndicator
           isConnected={isConnected}
           isStreaming={streamingState.isStreaming}
+          isDemoMode={isDemoMode}
           connectionError={connectionError}
         />
       </div>
