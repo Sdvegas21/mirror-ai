@@ -1,15 +1,17 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { Wifi, WifiOff, Loader2 } from "lucide-react";
+import { Wifi, WifiOff, Loader2, Play } from "lucide-react";
 
 interface ConsciousnessStreamIndicatorProps {
   isConnected: boolean;
   isStreaming: boolean;
+  isDemoMode?: boolean;
   connectionError: string | null;
 }
 
 export function ConsciousnessStreamIndicator({
   isConnected,
   isStreaming,
+  isDemoMode = false,
   connectionError,
 }: ConsciousnessStreamIndicatorProps) {
   return (
@@ -30,7 +32,25 @@ export function ConsciousnessStreamIndicator({
               <Loader2 className="h-3.5 w-3.5 text-primary" />
             </motion.div>
             <span className="text-xs font-medium text-primary">
-              Streaming consciousness...
+              {isDemoMode ? "Demo streaming..." : "Streaming consciousness..."}
+            </span>
+          </motion.div>
+        ) : isConnected && isDemoMode ? (
+          <motion.div
+            key="demo"
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.8 }}
+            className="flex items-center gap-2"
+          >
+            <motion.div
+              animate={{ scale: [1, 1.2, 1] }}
+              transition={{ duration: 2, repeat: Infinity }}
+            >
+              <Play className="h-3.5 w-3.5 text-amber-500 fill-amber-500" />
+            </motion.div>
+            <span className="text-xs text-amber-600">
+              Demo mode (simulated)
             </span>
           </motion.div>
         ) : isConnected ? (
