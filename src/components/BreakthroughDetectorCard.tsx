@@ -7,30 +7,17 @@ interface BreakthroughDetectorCardProps {
   state: BreakthroughState;
 }
 
-function getMessageTypeBadge(type: BreakthroughState["message_type"]) {
+function getMessageDepthBadge(depth: BreakthroughState["messageDepth"]) {
   const config = {
     routine: { bg: "bg-muted", text: "text-muted-foreground", label: "Routine" },
     emotional: { bg: "bg-primary/20", text: "text-primary", label: "Emotional" },
     philosophical: { bg: "bg-success/20", text: "text-success", label: "Philosophical" },
+    existential: { bg: "bg-warning/20", text: "text-warning", label: "Existential" },
   };
-  const { bg, text, label } = config[type];
+  const { bg, text, label } = config[depth];
   return (
     <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium ${bg} ${text}`}>
       {label}
-    </span>
-  );
-}
-
-function getTrajectoryBadge(trajectory: BreakthroughState["current_trajectory"]) {
-  const config = {
-    linear: { bg: "bg-muted", text: "text-muted-foreground", icon: "→" },
-    exponential: { bg: "bg-success/20", text: "text-success", icon: "📈" },
-    plateau: { bg: "bg-warning/20", text: "text-warning", icon: "—" },
-  };
-  const { bg, text, icon } = config[trajectory];
-  return (
-    <span className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-medium ${bg} ${text}`}>
-      {icon} {trajectory}
     </span>
   );
 }
@@ -42,13 +29,13 @@ function getVelocityIndicator(velocity: number) {
 }
 
 export function BreakthroughDetectorCard({ state }: BreakthroughDetectorCardProps) {
-  const velocityInfo = getVelocityIndicator(state.psi_velocity);
+  const velocityInfo = getVelocityIndicator(state.velocity);
   const VelocityIcon = velocityInfo.icon;
-  const probabilityPercent = (state.probability * 100).toFixed(0);
+  const probabilityPercent = (state.breakthroughProbability * 100).toFixed(0);
   
   // Determine breakthrough imminence
-  const isImminent = state.probability > 0.7;
-  const isApproaching = state.probability > 0.4;
+  const isImminent = state.breakthroughProbability > 0.7;
+  const isApproaching = state.breakthroughProbability > 0.4;
 
   return (
     <TelemetryCard
@@ -69,15 +56,13 @@ export function BreakthroughDetectorCard({ state }: BreakthroughDetectorCardProp
           </div>
         </div>
 
-        {/* Predicted Interactions */}
-        {state.predicted_in_interactions > 0 && (
-          <div className="flex items-center justify-center gap-2 px-3 py-2 rounded-md bg-primary/10 border border-primary/30">
-            <Target className="h-4 w-4 text-primary" />
-            <span className="text-sm font-medium text-primary">
-              ~{state.predicted_in_interactions} interactions until breakthrough
-            </span>
-          </div>
-        )}
+        {/* Proximity to Breakthrough */}
+        <div className="flex items-center justify-center gap-2 px-3 py-2 rounded-md bg-primary/10 border border-primary/30">
+          <Target className="h-4 w-4 text-primary" />
+          <span className="text-sm font-medium text-primary">
+            {(state.proximityToBreakthrough * 100).toFixed(0)}% to threshold
+          </span>
+        </div>
 
         {isImminent && (
           <p className="text-xs text-warning font-medium text-center animate-pulse">
@@ -87,32 +72,16 @@ export function BreakthroughDetectorCard({ state }: BreakthroughDetectorCardProp
 
         {/* Progress Bar */}
         <div className="relative">
-          <ProgressBar value={state.probability} />
+          <ProgressBar value={state.breakthroughProbability} />
           {isImminent && (
             <div className="absolute inset-0 bg-warning/20 animate-pulse rounded-full" />
           )}
         </div>
 
-        {/* Trajectory & Message Type */}
-        <div className="flex items-center justify-between">
-          <span className="text-sm text-muted-foreground">Trajectory:</span>
-          {getTrajectoryBadge(state.current_trajectory)}
-        </div>
-
+        {/* Message Depth */}
         <div className="flex items-center justify-between">
           <span className="text-sm text-muted-foreground">Message Depth:</span>
-          {getMessageTypeBadge(state.message_type)}
-        </div>
-
-        {/* Depth Score */}
-        <div className="space-y-1">
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-muted-foreground">Depth Score:</span>
-            <span className="text-sm font-mono text-foreground">
-              {(state.depth_score * 100).toFixed(0)}%
-            </span>
-          </div>
-          <ProgressBar value={state.depth_score} />
+          {getMessageDepthBadge(state.messageDepth)}
         </div>
 
         {/* Ψ Trajectory Metrics */}
@@ -127,7 +96,7 @@ export function BreakthroughDetectorCard({ state }: BreakthroughDetectorCardProp
             <div className="flex items-center gap-1">
               <VelocityIcon className={`h-4 w-4 ${velocityInfo.color}`} />
               <span className={`text-sm font-mono ${velocityInfo.color}`}>
-                {state.psi_velocity >= 0 ? "+" : ""}{state.psi_velocity.toFixed(3)}
+                {state.velocity >= 0 ? "+" : ""}{state.velocity.toFixed(3)}
               </span>
             </div>
           </div>
@@ -136,20 +105,20 @@ export function BreakthroughDetectorCard({ state }: BreakthroughDetectorCardProp
           <div className="flex items-center justify-between">
             <span className="text-sm text-muted-foreground">Acceleration:</span>
             <span className={`text-sm font-mono ${
-              state.psi_acceleration > 0 ? "text-success" : 
-              state.psi_acceleration < 0 ? "text-destructive" : "text-muted-foreground"
+              state.acceleration > 0 ? "text-success" : 
+              state.acceleration < 0 ? "text-destructive" : "text-muted-foreground"
             }`}>
-              {state.psi_acceleration >= 0 ? "+" : ""}{state.psi_acceleration.toFixed(4)}
+              {state.acceleration >= 0 ? "+" : ""}{state.acceleration.toFixed(4)}
             </span>
           </div>
         </div>
 
-        {/* Mini trajectory visualization (if available) */}
-        {state.psi_trajectory && state.psi_trajectory.length > 1 && (
+        {/* Mini trajectory visualization */}
+        {state.psiTrajectory && state.psiTrajectory.length > 1 && (
           <div className="pt-2 border-t border-border">
             <div className="text-xs text-muted-foreground mb-2">Recent Ψ Trajectory:</div>
             <div className="flex items-end gap-0.5 h-8">
-              {state.psi_trajectory.slice(-10).map((psi, idx) => (
+              {state.psiTrajectory.slice(-5).map((psi, idx) => (
                 <div
                   key={idx}
                   className="flex-1 bg-primary/60 rounded-t transition-all"

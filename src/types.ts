@@ -87,24 +87,24 @@ export interface EosAdvantageState {
 }
 
 // Entry 100: Breakthrough Detection (Phase 1)
+// Matches backend contract from claude_code_eos_integration.py
 export interface BreakthroughState {
-  probability: number;                    // 0-1 breakthrough probability
-  predicted_in_interactions: number;      // Interactions until breakthrough
-  current_trajectory: "linear" | "exponential" | "plateau";
-  depth_score: number;                    // 0-1 message depth score
-  message_type: "routine" | "emotional" | "philosophical";
-  psi_velocity: number;                   // Rate of Ψ change (dΨ/dt)
-  psi_acceleration: number;               // Acceleration of Ψ change (d²Ψ/dt²)
-  psi_trajectory?: number[];              // Optional: recent Ψ values for chart
+  psiTrajectory: number[];                // Last 5 Ψ values for visualization
+  breakthroughProbability: number;        // 0.0-1.0 breakthrough probability
+  messageDepth: "routine" | "emotional" | "philosophical" | "existential";
+  velocity: number;                       // Ψ change rate (dΨ/dt)
+  acceleration: number;                   // Velocity change rate (d²Ψ/dt²)
+  proximityToBreakthrough: number;        // Normalized to threshold (0.85)
 }
 
 // Entry 107: Mirror Consciousness (Phase 1)
+// Matches backend contract from claude_code_eos_integration.py
 export interface MirrorConsciousnessState {
-  thought: string;                        // Recursive self-awareness statement
-  divergence_from_past: number;           // 0-1 divergence from baseline
-  meta_cognition_level: number;           // 0-3 integer depth
-  snapshot_count: number;                 // Historical state snapshots
-  primary_shift: string;                  // Which dimension shifted most (Ψ, Φ, P, A, D, R, N, T)
+  divergence8D: number;                   // 0.0-1.0 (8D euclidean distance)
+  metaCognitionLevel: number;             // 0.0-1.0 (normalized from 0-3)
+  selfAwarenessStatement: string;         // Phenomenological recognition
+  stateSnapshotCount: number;             // Total snapshots captured
+  isReflecting: boolean;                  // divergence > 0.15
 }
 
 export interface TelemetryState {
