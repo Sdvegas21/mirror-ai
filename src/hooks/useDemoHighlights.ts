@@ -64,7 +64,7 @@ export function useDemoHighlights(options: UseDemoHighlightsOptions = {}) {
     breakthroughProbability?: number;
   }) => {
     const { arousal, transformation, recursion, phi, breakthroughProbability } = values;
-    const lastCheck = lastCheckRef.current;
+    const lastCheck = lastCheckRef.current ?? {};
 
     // Arousal spike detection
     if (arousal !== undefined && arousal >= arousalThreshold && lastCheck.arousal !== arousal) {
