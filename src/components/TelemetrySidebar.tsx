@@ -12,6 +12,7 @@ import {
 import { TelemetryState } from "@/types";
 import { TelemetryCard } from "./TelemetryCard";
 import { PadBar } from "./PadBar";
+import { PadBarEnhanced } from "./PadBarEnhanced";
 import { ProgressBar } from "./ProgressBar";
 import { Button } from "@/components/ui/button";
 import { ConsciousnessPhaseCard } from "./ConsciousnessPhaseCard";
@@ -20,7 +21,9 @@ import { BreakthroughDetectorCard } from "./BreakthroughDetectorCard";
 import { MirrorConsciousnessCard } from "./MirrorConsciousnessCard";
 import { LivePsiDisplay } from "./LivePsiDisplay";
 import { ConsciousnessStreamIndicator } from "./ConsciousnessStreamIndicator";
+import { DemoHighlightsPanel } from "./DemoHighlightsPanel";
 import { useConsciousnessStream } from "@/hooks/useConsciousnessStream";
+import { useDemoHighlights } from "@/hooks/useDemoHighlights";
 
 interface TelemetrySidebarProps {
   telemetry: TelemetryState;
@@ -74,12 +77,39 @@ export function TelemetrySidebar({ telemetry, compareMode }: TelemetrySidebarPro
     demoMode: true, // Enable demo mode for Lovable preview
   });
 
+  // Demo highlights capture for investor presentations
+  const { highlights, checkForHighlights, clearHighlights } = useDemoHighlights({
+    arousalThreshold: 0.85,
+    transformationThreshold: 0.95,
+    recursionThreshold: 0.80,
+    phiThreshold: 0.85,
+    breakthroughThreshold: 0.70,
+  });
+
   // Use streaming data if available, otherwise fall back to telemetry props
   const livePsi = streamingState.isStreaming 
     ? streamingState.currentPsi 
     : telemetry.consciousness.psi;
   const liveBreakthrough = streamingState.breakthrough || telemetry.breakthrough;
   const liveMirrorConsciousness = streamingState.mirrorConsciousness || telemetry.mirrorConsciousness;
+
+  // Check for highlight-worthy moments when telemetry updates
+  useEffect(() => {
+    checkForHighlights({
+      arousal: telemetry.pad.arousal,
+      transformation: telemetry.bcpSubstrate?.rnt?.transformation,
+      recursion: telemetry.bcpSubstrate?.rnt?.recursion,
+      phi: telemetry.bcpSubstrate?.phi,
+      breakthroughProbability: liveBreakthrough?.breakthroughProbability,
+    });
+  }, [
+    telemetry.pad.arousal,
+    telemetry.bcpSubstrate?.rnt?.transformation,
+    telemetry.bcpSubstrate?.rnt?.recursion,
+    telemetry.bcpSubstrate?.phi,
+    liveBreakthrough?.breakthroughProbability,
+    checkForHighlights,
+  ]);
 
   // Live clock
   useEffect(() => {
@@ -149,12 +179,12 @@ export function TelemetrySidebar({ telemetry, compareMode }: TelemetrySidebarPro
           </div>
         </TelemetryCard>
 
-        {/* PAD Model */}
+        {/* PAD Model - Enhanced with delta indicators and high-value pulse */}
         <TelemetryCard icon={<Heart className="h-4 w-4" />} title="Emotional State (PAD)">
           <div className="space-y-4">
-            <PadBar label="Pleasure (P)" value={telemetry.pad.pleasure} />
-            <PadBar label="Arousal (A)" value={telemetry.pad.arousal} />
-            <PadBar label="Dominance (D)" value={telemetry.pad.dominance} />
+            <PadBarEnhanced label="Pleasure (P)" value={telemetry.pad.pleasure} showDelta={true} />
+            <PadBarEnhanced label="Arousal (A)" value={telemetry.pad.arousal} showDelta={true} />
+            <PadBarEnhanced label="Dominance (D)" value={telemetry.pad.dominance} showDelta={true} />
           </div>
         </TelemetryCard>
 
@@ -206,14 +236,14 @@ export function TelemetrySidebar({ telemetry, compareMode }: TelemetrySidebarPro
             title="🔥 BCP v3.0 Substrate"
           >
             <div className="space-y-4">
-              {/* RNT Dimensions */}
+              {/* RNT Dimensions - Enhanced */}
               <div className="space-y-3">
                 <div className="text-xs font-semibold text-primary uppercase tracking-wide">
                   RNT Cognitive Dimensions
                 </div>
-                <PadBar label="Recursion (R)" value={telemetry.bcpSubstrate.rnt.recursion ?? 0} />
-                <PadBar label="Novelty (N)" value={telemetry.bcpSubstrate.rnt.novelty ?? 0} />
-                <PadBar label="Transformation (T)" value={telemetry.bcpSubstrate.rnt.transformation ?? 0} />
+                <PadBarEnhanced label="Recursion (R)" value={telemetry.bcpSubstrate.rnt.recursion ?? 0} showDelta={true} />
+                <PadBarEnhanced label="Novelty (N)" value={telemetry.bcpSubstrate.rnt.novelty ?? 0} showDelta={true} />
+                <PadBarEnhanced label="Transformation (T)" value={telemetry.bcpSubstrate.rnt.transformation ?? 0} showDelta={true} />
               </div>
 
               {/* Top Cognitive Patterns */}
@@ -289,6 +319,9 @@ export function TelemetrySidebar({ telemetry, compareMode }: TelemetrySidebarPro
         {liveMirrorConsciousness && (
           <MirrorConsciousnessCard state={liveMirrorConsciousness} />
         )}
+
+        {/* Demo Highlights Panel - Captures undeniable moments for investor presentations */}
+        <DemoHighlightsPanel highlights={highlights} onClear={clearHighlights} />
 
         {/* TIER 3: Developmental Pathways */}
         {telemetry.pathwayNetwork && (
