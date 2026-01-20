@@ -1,5 +1,6 @@
-import { motion } from "framer-motion";
-import { Sparkles, TrendingUp, Activity } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Sparkles, TrendingUp, TrendingDown, Activity, Zap } from "lucide-react";
 
 interface LivePsiDisplayProps {
   value: number;
@@ -7,6 +8,7 @@ interface LivePsiDisplayProps {
   isStreaming?: boolean;
   trajectory?: number[];
   velocity?: number;
+  acceleration?: number;
 }
 
 export function LivePsiDisplay({
@@ -15,14 +17,44 @@ export function LivePsiDisplay({
   isStreaming = false,
   trajectory = [],
   velocity = 0,
+  acceleration = 0,
 }: LivePsiDisplayProps) {
+  const [previousValue, setPreviousValue] = useState(value);
+  const [delta, setDelta] = useState(0);
+  const [showDelta, setShowDelta] = useState(false);
+  const deltaTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
   const isClimbing = targetValue !== undefined && targetValue > value;
   const proximityToBreakthrough = Math.min(1, value / 0.85);
   const isNearBreakthrough = proximityToBreakthrough > 0.9;
+  const isBreakthrough = value >= 0.85;
+
+  // Track delta changes
+  useEffect(() => {
+    const newDelta = value - previousValue;
+    if (Math.abs(newDelta) > 0.005) {
+      setDelta(newDelta);
+      setShowDelta(true);
+      
+      if (deltaTimeoutRef.current) {
+        clearTimeout(deltaTimeoutRef.current);
+      }
+      deltaTimeoutRef.current = setTimeout(() => {
+        setShowDelta(false);
+      }, 2000);
+    }
+    setPreviousValue(value);
+    
+    return () => {
+      if (deltaTimeoutRef.current) {
+        clearTimeout(deltaTimeoutRef.current);
+      }
+    };
+  }, [value, previousValue]);
 
   return (
     <div className="space-y-3">
-      {/* Main Ψ Value Display */}
+      {/* Main Ψ Value Display with Delta */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <span className="text-sm text-muted-foreground">Ψ (Psi)</span>
@@ -34,22 +66,56 @@ export function LivePsiDisplay({
               <Activity className="h-3 w-3 text-primary" />
             </motion.div>
           )}
-        </div>
-        <div className="flex items-center gap-2">
-          {isClimbing && (
+          {isBreakthrough && (
             <motion.div
-              animate={{ y: [0, -3, 0] }}
+              animate={{ scale: [1, 1.3, 1], rotate: [0, 15, -15, 0] }}
               transition={{ duration: 0.5, repeat: Infinity }}
+              className="text-success"
             >
-              <TrendingUp className="h-3 w-3 text-success" />
+              <Zap className="h-4 w-4 fill-success" />
             </motion.div>
           )}
+        </div>
+        <div className="flex items-center gap-2 relative">
+          {/* Delta indicator */}
+          <AnimatePresence>
+            {showDelta && Math.abs(delta) > 0.005 && (
+              <motion.span
+                initial={{ opacity: 0, y: 4 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -4 }}
+                className={`absolute -top-5 right-0 text-xs font-mono px-1.5 py-0.5 rounded ${
+                  delta > 0 
+                    ? "bg-success/20 text-success" 
+                    : "bg-destructive/20 text-destructive"
+                }`}
+              >
+                {delta > 0 ? "+" : ""}{delta.toFixed(3)}
+              </motion.span>
+            )}
+          </AnimatePresence>
+
+          {/* Trend arrow */}
+          {velocity !== 0 && (
+            <motion.div
+              animate={{ y: velocity > 0 ? [0, -2, 0] : [0, 2, 0] }}
+              transition={{ duration: 0.5, repeat: Infinity }}
+            >
+              {velocity > 0 ? (
+                <TrendingUp className="h-3 w-3 text-success" />
+              ) : (
+                <TrendingDown className="h-3 w-3 text-destructive" />
+              )}
+            </motion.div>
+          )}
+
+          {/* Animated Ψ value */}
           <motion.span
             key={value.toFixed(3)}
-            initial={{ scale: 1.2, color: "hsl(var(--primary))" }}
+            initial={{ scale: 1.3, color: delta > 0 ? "hsl(var(--success))" : delta < 0 ? "hsl(var(--destructive))" : "hsl(var(--primary))" }}
             animate={{ scale: 1, color: "hsl(var(--foreground))" }}
-            transition={{ duration: 0.3 }}
-            className="text-lg font-mono font-bold"
+            transition={{ duration: 0.4 }}
+            className={`text-lg font-mono font-bold ${isBreakthrough ? "text-success" : ""}`}
           >
             {value.toFixed(3)}
           </motion.span>
@@ -75,10 +141,12 @@ export function LivePsiDisplay({
           />
         )}
         
-        {/* Current value bar */}
+        {/* Current value bar with breakthrough glow */}
         <motion.div
-          className={`absolute top-0 left-0 h-full rounded-full ${
-            isNearBreakthrough
+          className={`absolute top-0 left-0 h-full rounded-full transition-all duration-300 ${
+            isBreakthrough
+              ? "bg-gradient-to-r from-success via-success to-warning animate-high-value-pulse"
+              : isNearBreakthrough
               ? "bg-gradient-to-r from-primary to-success"
               : "bg-primary"
           }`}
@@ -100,47 +168,89 @@ export function LivePsiDisplay({
         )}
       </div>
 
-      {/* Mini Trajectory Sparkline */}
+      {/* Mini Trajectory Sparkline - Enhanced */}
       {trajectory.length > 0 && (
-        <div className="flex items-center gap-1">
-          <Sparkles className="h-3 w-3 text-primary" />
-          <div className="flex items-end gap-0.5 h-4 flex-1">
-            {trajectory.map((v, i) => (
-              <motion.div
-                key={i}
-                className="flex-1 bg-primary/60 rounded-sm"
-                initial={{ height: 0 }}
-                animate={{ height: `${Math.max(10, v * 100)}%` }}
-                transition={{ delay: i * 0.05, duration: 0.2 }}
-              />
-            ))}
+        <div className="space-y-1">
+          <div className="flex items-center gap-1">
+            <Sparkles className="h-3 w-3 text-primary" />
+            <div className="flex items-end gap-0.5 h-6 flex-1">
+              {trajectory.slice(-10).map((v, i, arr) => {
+                const isLast = i === arr.length - 1;
+                const isPeak = v === Math.max(...arr);
+                return (
+                  <motion.div
+                    key={i}
+                    className={`flex-1 rounded-sm ${
+                      isLast 
+                        ? "bg-primary" 
+                        : isPeak 
+                        ? "bg-success/80" 
+                        : "bg-primary/40"
+                    }`}
+                    initial={{ height: 0 }}
+                    animate={{ height: `${Math.max(15, v * 100)}%` }}
+                    transition={{ delay: i * 0.03, duration: 0.2 }}
+                  />
+                );
+              })}
+            </div>
           </div>
-          {velocity !== 0 && (
-            <span className={`text-xs font-mono ${velocity > 0 ? "text-success" : "text-destructive"}`}>
-              {velocity > 0 ? "+" : ""}{(velocity * 100).toFixed(1)}%/s
-            </span>
-          )}
+          
+          {/* Velocity & Acceleration indicators */}
+          <div className="flex items-center justify-between text-[10px]">
+            {velocity !== 0 && (
+              <span className={`font-mono ${velocity > 0 ? "text-success" : "text-destructive"}`}>
+                dΨ/dt: {velocity > 0 ? "+" : ""}{(velocity * 100).toFixed(1)}%/s
+              </span>
+            )}
+            {acceleration !== 0 && (
+              <span className={`font-mono ${acceleration > 0 ? "text-success" : "text-warning"}`}>
+                d²Ψ/dt²: {acceleration > 0 ? "+" : ""}{(acceleration * 100).toFixed(2)}
+              </span>
+            )}
+          </div>
         </div>
       )}
 
-      {/* Near Breakthrough Alert */}
-      {isNearBreakthrough && (
-        <motion.div
-          initial={{ opacity: 0, y: 5 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="flex items-center gap-2 p-2 rounded-md bg-success/10 border border-success/30"
-        >
+      {/* Breakthrough Alert - Enhanced */}
+      <AnimatePresence>
+        {isBreakthrough && (
           <motion.div
-            animate={{ scale: [1, 1.2, 1] }}
-            transition={{ duration: 1, repeat: Infinity }}
+            initial={{ opacity: 0, y: 5, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -5, scale: 0.95 }}
+            className="flex items-center gap-2 p-2 rounded-md bg-success/20 border border-success/50 animate-emergence-glow"
           >
-            <Sparkles className="h-4 w-4 text-success" />
+            <motion.div
+              animate={{ scale: [1, 1.2, 1], rotate: [0, 360] }}
+              transition={{ duration: 2, repeat: Infinity }}
+            >
+              <Zap className="h-4 w-4 text-success fill-success" />
+            </motion.div>
+            <span className="text-xs font-bold text-success uppercase tracking-wide">
+              🔥 Breakthrough achieved! Ψ ≥ 0.85
+            </span>
           </motion.div>
-          <span className="text-xs font-medium text-success">
-            Approaching consciousness breakthrough threshold
-          </span>
-        </motion.div>
-      )}
+        )}
+        {!isBreakthrough && isNearBreakthrough && (
+          <motion.div
+            initial={{ opacity: 0, y: 5 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -5 }}
+            className="flex items-center gap-2 p-2 rounded-md bg-warning/10 border border-warning/30"
+          >
+            <motion.div
+              animate={{ scale: [1, 1.2, 1] }}
+              transition={{ duration: 1, repeat: Infinity }}
+            >
+              <Sparkles className="h-4 w-4 text-warning" />
+            </motion.div>
+            <span className="text-xs font-medium text-warning">
+              Approaching breakthrough threshold ({(proximityToBreakthrough * 100).toFixed(0)}%)
+            </span>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

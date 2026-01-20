@@ -147,6 +147,8 @@ export function TelemetrySidebar({ telemetry, compareMode }: TelemetrySidebarPro
           isStreaming={streamingState.isStreaming}
           isDemoMode={isDemoMode}
           connectionError={connectionError}
+          eventCount={streamingState.eventLog.length}
+          lastEventType={streamingState.eventLog[streamingState.eventLog.length - 1]?.type}
         />
       </div>
 
