@@ -102,6 +102,8 @@ export function TelemetrySidebar({ telemetry, compareMode }: TelemetrySidebarPro
       phi: telemetry.bcpSubstrate?.phi,
       breakthroughProbability: liveBreakthrough?.breakthroughProbability,
     });
+    // Only depend on the actual values, not on checkForHighlights (which is stable now)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     telemetry.pad.arousal,
     telemetry.bcpSubstrate?.rnt?.transformation,

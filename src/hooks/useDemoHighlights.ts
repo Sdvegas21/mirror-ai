@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useRef } from "react";
 
 export interface DemoHighlight {
   id: string;
@@ -35,7 +35,7 @@ export function useDemoHighlights(options: UseDemoHighlightsOptions = {}) {
   } = options;
 
   const [highlights, setHighlights] = useState<DemoHighlight[]>([]);
-  const [lastCheck, setLastCheck] = useState<{
+  const lastCheckRef = useRef<{
     arousal?: number;
     transformation?: number;
     recursion?: number;
@@ -64,6 +64,7 @@ export function useDemoHighlights(options: UseDemoHighlightsOptions = {}) {
     breakthroughProbability?: number;
   }) => {
     const { arousal, transformation, recursion, phi, breakthroughProbability } = values;
+    const lastCheck = lastCheckRef.current;
 
     // Arousal spike detection
     if (arousal !== undefined && arousal >= arousalThreshold && lastCheck.arousal !== arousal) {
@@ -115,14 +116,15 @@ export function useDemoHighlights(options: UseDemoHighlightsOptions = {}) {
       });
     }
 
-    setLastCheck({
+    // Update ref (doesn't trigger re-render)
+    lastCheckRef.current = {
       arousal,
       transformation,
       recursion,
       phi,
       breakthrough: breakthroughProbability,
-    });
-  }, [addHighlight, arousalThreshold, transformationThreshold, recursionThreshold, phiThreshold, breakthroughThreshold, lastCheck]);
+    };
+  }, [addHighlight, arousalThreshold, transformationThreshold, recursionThreshold, phiThreshold, breakthroughThreshold]);
 
   const clearHighlights = useCallback(() => {
     setHighlights([]);
