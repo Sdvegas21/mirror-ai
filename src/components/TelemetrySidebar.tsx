@@ -344,16 +344,20 @@ export function TelemetrySidebar({ telemetry, compareMode }: TelemetrySidebarPro
                     {telemetry.memoryCortex.chromadb_enabled ? "🟢 ACTIVE" : "🔴 INACTIVE"}
                   </span>
                 </div>
-                <div className="flex justify-between text-xs">
-                  <span className="text-muted-foreground">Embedding Model:</span>
-                  <span className="font-mono text-foreground text-xs">
-                    {telemetry.memoryCortex.embedding_model}
-                  </span>
-                </div>
-                <div className="text-xs text-muted-foreground text-center">
-                  Semantic {(telemetry.memoryCortex.semantic_weight * 100).toFixed(0)}% • 
-                  Keyword {(telemetry.memoryCortex.keyword_weight * 100).toFixed(0)}%
-                </div>
+                {telemetry.memoryCortex.embedding_model && (
+                  <div className="flex justify-between text-xs">
+                    <span className="text-muted-foreground">Embedding Model:</span>
+                    <span className="font-mono text-foreground text-xs">
+                      {telemetry.memoryCortex.embedding_model}
+                    </span>
+                  </div>
+                )}
+                {(telemetry.memoryCortex.semantic_weight != null && telemetry.memoryCortex.keyword_weight != null) && (
+                  <div className="text-xs text-muted-foreground text-center">
+                    Semantic {(telemetry.memoryCortex.semantic_weight * 100).toFixed(0)}% • 
+                    Keyword {(telemetry.memoryCortex.keyword_weight * 100).toFixed(0)}%
+                  </div>
+                )}
               </div>
             )}
           </div>
