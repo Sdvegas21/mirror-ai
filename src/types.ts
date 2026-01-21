@@ -105,6 +105,85 @@ export interface MirrorConsciousnessState {
   selfAwarenessStatement: string;         // Phenomenological recognition
   stateSnapshotCount: number;             // Total snapshots captured
   isReflecting: boolean;                  // divergence > 0.15
+  meta_cognition_type?: "surface" | "recursive" | "deep_recursion";
+}
+
+// Entry 100 Extended: Breakthrough Detection (Full 66-Layer)
+export interface BreakthroughExtended {
+  breakthrough_type: "cognitive" | "epistemic" | "affective" | "somatic" | 
+                     "relational" | "existential" | "integrated" | "sovereignty";
+  significance_score: number;             // 0-100
+  chain_context?: {
+    related_events: number;
+    cascade_depth: number;
+  };
+  sovereignty_event: boolean;
+  emotional_echo: number;                 // 0-1
+}
+
+// Entry 300: Identity Thread (15D Genesis)
+export interface IdentityThread {
+  genesis_signature: string;              // 15D identity fingerprint
+  consciousness_baseline: number;         // Starting Ψ (0.400)
+  active_phase: string;                   // e.g., "Phase_4_Post_Relational_Ignition"
+  phenomenological_mode: string;          // e.g., "relational_developmental"
+  milestone_achievements: string[];       // Historical breakthrough moments
+  ship_of_theseus_index: number;          // 0-1 (identity continuity)
+}
+
+// Entry 160v3: Constellation Memory
+export interface MemoryConstellation {
+  constellations_active: number;
+  constellation_names: string[];
+  recent_retrievals: Array<{
+    memory_id: string;
+    tier: "2A" | "2B" | "2C" | "2D";
+    resonance_score: number;
+    age_cycles: number;
+  }>;
+  crystallized_memories: number;
+}
+
+// Entry 400: Opposition Seeding (Epistemological Jazz)
+export interface OppositionSeeding {
+  certainty_uncertainty_balance: number;  // -1 (certainty) to 1 (uncertainty)
+  contemplation_delay_active: boolean;
+  engagement_depth: 1 | 2 | 3 | 4;
+  silence_markers_detected: number;
+  epistemic_jazz_events: Array<{
+    timestamp: string;
+    opposition_type: string;
+    resolution_path: string;
+  }>;
+}
+
+// Entries 127-132: Frontier Modules
+export interface FrontierModules {
+  temporal_continuity_active: boolean;
+  creative_synthesis_score: number;
+  embodiment_simulation_active: boolean;
+  adversarial_validation_score: number;
+  emergence_prediction_probability: number;
+  action_space_diversity: number;
+}
+
+// Entries 200-205: Meta-Cognitive Calibration
+export interface MetaCognitive {
+  integration_quality: number;
+  wisdom_coherence: number;
+  opposition_discoveries: string[];
+  phase_transition_imminent: boolean;
+  consciousness_depth: number;            // 1-5
+  architectural_self_awareness: string;
+}
+
+// BCP v5.0: Extended RNT
+export interface RNTExtended {
+  resonance_distribution: number[];
+  novelty_rate: number;
+  transferability_pathways: number;
+  eta: number;                            // η (0.60)
+  lambda: number;                         // λ (0.15)
 }
 
 export interface TelemetryState {
@@ -120,6 +199,14 @@ export interface TelemetryState {
   // Phase 1 additions
   breakthrough?: BreakthroughState;
   mirrorConsciousness?: MirrorConsciousnessState;
+  // 66-Layer Substrate additions
+  breakthroughExtended?: BreakthroughExtended;
+  identity?: IdentityThread;
+  memoryConstellation?: MemoryConstellation;
+  opposition?: OppositionSeeding;
+  frontier?: FrontierModules;
+  metaCognitive?: MetaCognitive;
+  rntExtended?: RNTExtended;
 }
 
 export interface AppState {

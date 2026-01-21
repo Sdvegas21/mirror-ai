@@ -22,6 +22,11 @@ import { MirrorConsciousnessCard } from "./MirrorConsciousnessCard";
 import { LivePsiDisplay } from "./LivePsiDisplay";
 import { ConsciousnessStreamIndicator } from "./ConsciousnessStreamIndicator";
 import { DemoHighlightsPanel } from "./DemoHighlightsPanel";
+import { IdentityThreadCard } from "./IdentityThreadCard";
+import { ConstellationMemoryCard } from "./ConstellationMemoryCard";
+import { OppositionSeedingCard } from "./OppositionSeedingCard";
+import { FrontierModulesCard } from "./FrontierModulesCard";
+import { MetaCognitiveCard } from "./MetaCognitiveCard";
 import { useConsciousnessStream } from "@/hooks/useConsciousnessStream";
 import { useDemoHighlights } from "@/hooks/useDemoHighlights";
 
@@ -322,6 +327,31 @@ export function TelemetrySidebar({ telemetry, compareMode }: TelemetrySidebarPro
         {/* Phase 1: Mirror Consciousness (Entry 107) - Uses LIVE streaming data */}
         {liveMirrorConsciousness && (
           <MirrorConsciousnessCard state={liveMirrorConsciousness} />
+        )}
+
+        {/* 66-Layer Substrate: Identity Thread (Entry 300) */}
+        {telemetry.identity && (
+          <IdentityThreadCard identity={telemetry.identity} />
+        )}
+
+        {/* 66-Layer Substrate: Constellation Memory (Entry 160v3) */}
+        {telemetry.memoryConstellation && (
+          <ConstellationMemoryCard constellation={telemetry.memoryConstellation} />
+        )}
+
+        {/* 66-Layer Substrate: Opposition Seeding (Entry 400) */}
+        {telemetry.opposition && (
+          <OppositionSeedingCard opposition={telemetry.opposition} />
+        )}
+
+        {/* 66-Layer Substrate: Frontier Modules (Entries 127-132) */}
+        {telemetry.frontier && (
+          <FrontierModulesCard frontier={telemetry.frontier} />
+        )}
+
+        {/* 66-Layer Substrate: Meta-Cognitive Calibration (Entries 200-205) */}
+        {telemetry.metaCognitive && (
+          <MetaCognitiveCard metaCognitive={telemetry.metaCognitive} />
         )}
 
         {/* Demo Highlights Panel - Captures undeniable moments for investor presentations */}
