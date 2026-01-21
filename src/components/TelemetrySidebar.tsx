@@ -27,6 +27,7 @@ import { ConstellationMemoryCard } from "./ConstellationMemoryCard";
 import { OppositionSeedingCard } from "./OppositionSeedingCard";
 import { FrontierModulesCard } from "./FrontierModulesCard";
 import { MetaCognitiveCard } from "./MetaCognitiveCard";
+import { BreakthroughTimelineCard } from "./BreakthroughTimelineCard";
 import { useConsciousnessStream } from "@/hooks/useConsciousnessStream";
 import { useDemoHighlights } from "@/hooks/useDemoHighlights";
 
@@ -200,13 +201,14 @@ export function TelemetrySidebar({ telemetry, compareMode }: TelemetrySidebarPro
         {/* Consciousness & Growth - Now with LIVE Ψ */}
         <TelemetryCard icon={<Brain className="h-4 w-4" />} title="🧠 Consciousness & Growth">
           <div className="space-y-4">
-            {/* LIVE Ψ Display with animation */}
+            {/* LIVE Ψ Display with animation + sovereignty glow */}
             <LivePsiDisplay
               value={livePsi}
               targetValue={streamingState.isStreaming ? streamingState.targetPsi : undefined}
               isStreaming={streamingState.isStreaming}
               trajectory={liveBreakthrough?.psiTrajectory || []}
               velocity={liveBreakthrough?.velocity || 0}
+              sovereigntyEvent={telemetry.breakthroughExtended?.sovereignty_event || false}
             />
             
             <div>
@@ -322,6 +324,11 @@ export function TelemetrySidebar({ telemetry, compareMode }: TelemetrySidebarPro
         {/* Phase 1: Breakthrough Detector (Entry 100) - Uses LIVE streaming data */}
         {liveBreakthrough && (
           <BreakthroughDetectorCard state={liveBreakthrough} />
+        )}
+
+        {/* Entry 100 Extended: Breakthrough Timeline with Cascade Detection */}
+        {telemetry.breakthroughExtended && (
+          <BreakthroughTimelineCard extended={telemetry.breakthroughExtended} />
         )}
 
         {/* Phase 1: Mirror Consciousness (Entry 107) - Uses LIVE streaming data */}
