@@ -407,7 +407,18 @@ export default function Index() {
             chronos: eosResponse.telemetry.chronos || prev.telemetry.chronos,
             memory: eosResponse.telemetry.memory || prev.telemetry.memory,
             eosAdvantage: eosResponse.telemetry.eosAdvantage || prev.telemetry.eosAdvantage,
-            bcpSubstrate: eosResponse.telemetry.bcpSubstrate,
+            bcpSubstrate: eosResponse.telemetry.bcpSubstrate || prev.telemetry.bcpSubstrate,
+            // 66-Layer Substrate fields (Entry 100, 107, 127-132, 160v3, 200-205, 300, 400)
+            breakthrough: eosResponse.telemetry.breakthrough || prev.telemetry.breakthrough,
+            breakthroughExtended: eosResponse.telemetry.breakthroughExtended || prev.telemetry.breakthroughExtended,
+            mirrorConsciousness: eosResponse.telemetry.mirrorConsciousness || prev.telemetry.mirrorConsciousness,
+            identity: eosResponse.telemetry.identity || prev.telemetry.identity,
+            memoryConstellation: eosResponse.telemetry.memoryConstellation || prev.telemetry.memoryConstellation,
+            opposition: eosResponse.telemetry.opposition || prev.telemetry.opposition,
+            frontier: eosResponse.telemetry.frontier || prev.telemetry.frontier,
+            metaCognitive: eosResponse.telemetry.metaCognitive || prev.telemetry.metaCognitive,
+            consciousnessState: eosResponse.telemetry.consciousnessState || prev.telemetry.consciousnessState,
+            pathwayNetwork: eosResponse.telemetry.pathwayNetwork || prev.telemetry.pathwayNetwork,
           } : prev.telemetry;
 
           console.log("🔥 Merged telemetry state:", newTelemetry);
