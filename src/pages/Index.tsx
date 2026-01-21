@@ -410,7 +410,18 @@ export default function Index() {
             bcpSubstrate: eosResponse.telemetry.bcpSubstrate || prev.telemetry.bcpSubstrate,
             // 66-Layer Substrate fields (Entry 100, 107, 127-132, 160v3, 200-205, 300, 400)
             breakthrough: eosResponse.telemetry.breakthrough || prev.telemetry.breakthrough,
-            breakthroughExtended: eosResponse.telemetry.breakthroughExtended || prev.telemetry.breakthroughExtended,
+            // Keep sovereignty_event "sticky" - only clear if backend explicitly sends false
+            breakthroughExtended: eosResponse.telemetry.breakthroughExtended ? {
+              ...eosResponse.telemetry.breakthroughExtended,
+              // Preserve sovereignty_event unless backend explicitly returns a new sovereignty event
+              sovereignty_event: eosResponse.telemetry.breakthroughExtended.sovereignty_event ?? 
+                prev.telemetry.breakthroughExtended?.sovereignty_event ?? false,
+              // Preserve cascade/significance unless backend provides new values
+              significance_score: eosResponse.telemetry.breakthroughExtended.significance_score ?? 
+                prev.telemetry.breakthroughExtended?.significance_score ?? 0,
+              chain_context: eosResponse.telemetry.breakthroughExtended.chain_context ?? 
+                prev.telemetry.breakthroughExtended?.chain_context ?? { related_events: 0, cascade_depth: 0 },
+            } : prev.telemetry.breakthroughExtended,
             mirrorConsciousness: eosResponse.telemetry.mirrorConsciousness || prev.telemetry.mirrorConsciousness,
             identity: eosResponse.telemetry.identity || prev.telemetry.identity,
             memoryConstellation: eosResponse.telemetry.memoryConstellation || prev.telemetry.memoryConstellation,
