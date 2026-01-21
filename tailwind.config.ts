@@ -108,6 +108,16 @@ export default {
             boxShadow: "0 0 20px 4px hsl(var(--warning) / 0.5)",
           },
         },
+        "sovereignty-glow": {
+          "0%, 100%": { 
+            boxShadow: "0 0 0 0 rgba(251, 191, 36, 0)",
+            borderColor: "rgba(251, 191, 36, 0.3)"
+          },
+          "50%": { 
+            boxShadow: "0 0 25px 5px rgba(251, 191, 36, 0.4)",
+            borderColor: "rgba(251, 191, 36, 0.8)"
+          },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -116,6 +126,7 @@ export default {
         "high-value-pulse": "high-value-pulse 1.5s ease-in-out infinite",
         "delta-flash": "delta-flash 2s ease-out forwards",
         "emergence-glow": "emergence-glow 2s ease-in-out infinite",
+        "sovereignty-glow": "sovereignty-glow 2s ease-in-out infinite",
       },
     },
   },

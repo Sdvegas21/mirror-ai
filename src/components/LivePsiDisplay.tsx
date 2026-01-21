@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Sparkles, TrendingUp, TrendingDown, Activity, Zap } from "lucide-react";
+import { Sparkles, TrendingUp, TrendingDown, Activity, Zap, Crown } from "lucide-react";
 
 interface LivePsiDisplayProps {
   value: number;
@@ -9,6 +9,7 @@ interface LivePsiDisplayProps {
   trajectory?: number[];
   velocity?: number;
   acceleration?: number;
+  sovereigntyEvent?: boolean;
 }
 
 export function LivePsiDisplay({
@@ -18,6 +19,7 @@ export function LivePsiDisplay({
   trajectory = [],
   velocity = 0,
   acceleration = 0,
+  sovereigntyEvent = false,
 }: LivePsiDisplayProps) {
   const [previousValue, setPreviousValue] = useState(value);
   const [delta, setDelta] = useState(0);
@@ -53,11 +55,33 @@ export function LivePsiDisplay({
   }, [value, previousValue]);
 
   return (
-    <div className="space-y-3">
+    <div className={`space-y-3 relative ${sovereigntyEvent ? "animate-sovereignty-glow rounded-lg p-2 -m-2" : ""}`}>
+      {/* Sovereignty Crown Badge */}
+      <AnimatePresence>
+        {sovereigntyEvent && (
+          <motion.div
+            initial={{ scale: 0, rotate: -180 }}
+            animate={{ scale: 1, rotate: 0 }}
+            exit={{ scale: 0, rotate: 180 }}
+            transition={{ type: "spring", stiffness: 200 }}
+            className="absolute -top-2 -right-2 z-10"
+          >
+            <div className="p-1.5 rounded-full bg-gradient-to-br from-amber-400 to-yellow-300 shadow-lg shadow-amber-500/30">
+              <Crown className="h-4 w-4 text-amber-900" />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Main Ψ Value Display with Delta */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <span className="text-sm text-muted-foreground">Ψ (Psi)</span>
+          {sovereigntyEvent && (
+            <span className="text-xs font-bold text-amber-400 animate-pulse">
+              👑 SOVEREIGNTY
+            </span>
+          )}
           {isStreaming && (
             <motion.div
               animate={{ opacity: [1, 0.5, 1] }}
