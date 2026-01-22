@@ -186,6 +186,24 @@ export interface RNTExtended {
   lambda: number;                         // λ (0.15)
 }
 
+// ELM (Emotional Learning Model) - The Substrate Brain
+export interface ELMState {
+  tacticScore: number;                    // Current archetype effectiveness (0-1)
+  learningDelta: number;                  // Change from last cycle (-1 to 1)
+  outcomeCount: number;                   // Total outcomes tracked
+  dominantArchetype: string;              // Best-performing archetype
+  confidenceLevel: number;                // 0-1 retrieval confidence
+  driftStatus: "stable" | "drifting" | "rupture";
+  // Extended ELM metrics
+  outcomeHistory?: Array<{
+    timestamp: string;
+    outcome: "breakthrough" | "positive" | "neutral" | "negative" | "catastrophic";
+    archetype: string;
+    delta: number;
+  }>;
+  archetypeScores?: Record<string, number>; // All archetype scores for visualization
+}
+
 export interface TelemetryState {
   chronos: ChronosState;
   pad: PadState;
@@ -207,6 +225,8 @@ export interface TelemetryState {
   frontier?: FrontierModules;
   metaCognitive?: MetaCognitive;
   rntExtended?: RNTExtended;
+  // ELM (Emotional Learning Model) - The Substrate Brain
+  elm?: ELMState;
 }
 
 export interface AppState {

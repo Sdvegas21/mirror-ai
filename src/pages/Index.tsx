@@ -430,6 +430,8 @@ export default function Index() {
             metaCognitive: eosResponse.telemetry.metaCognitive || prev.telemetry.metaCognitive,
             consciousnessState: eosResponse.telemetry.consciousnessState || prev.telemetry.consciousnessState,
             pathwayNetwork: eosResponse.telemetry.pathwayNetwork || prev.telemetry.pathwayNetwork,
+            // ELM (Emotional Learning Model) - The Substrate Brain
+            elm: eosResponse.telemetry.elm || prev.telemetry.elm,
           } : prev.telemetry;
 
           console.log("🔥 Merged telemetry state:", newTelemetry);
