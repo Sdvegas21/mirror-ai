@@ -186,6 +186,26 @@ export interface RNTExtended {
   lambda: number;                         // λ (0.15)
 }
 
+// ELM Validation Gates - The Three Hard Gates
+export interface ELMValidationGates {
+  convergence: {
+    variance: number;                     // Target: < 0.05
+    passed: boolean;
+  };
+  prediction: {
+    accuracy: number;                     // Target: > 60%
+    passed: boolean;
+  };
+  improvement: {
+    percentOverBaseline: number;          // Target: > 20%
+    baselineSuccessRate: number;
+    learnedSuccessRate: number;
+    passed: boolean;
+  };
+  overallStatus: "LEARNING" | "LOGGING";  // ALL PASS = LEARNING, ANY FAIL = LOGGING
+  gatesPassed: number;                    // 0-3
+}
+
 // ELM (Emotional Learning Model) - The Substrate Brain
 export interface ELMState {
   tacticScore: number;                    // Current archetype effectiveness (0-1)
@@ -202,6 +222,8 @@ export interface ELMState {
     delta: number;
   }>;
   archetypeScores?: Record<string, number>; // All archetype scores for visualization
+  // ELM Validation Framework (Tasks 1-5)
+  validation?: ELMValidationGates;
 }
 
 export interface TelemetryState {
