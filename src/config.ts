@@ -1,6 +1,7 @@
 // API Configuration
 export const API_CONFIG = {
-  BASE_URL: 'http://localhost:5001',
+  BASE_URL: 'http://localhost:8080',
+  WEBSOCKET_URL: 'http://localhost:8080',
   ENDPOINTS: {
     HEALTH: '/health',
     CHAT: '/chat',
