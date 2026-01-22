@@ -1,6 +1,6 @@
 import { forwardRef } from "react";
-import { Zap, TrendingUp, TrendingDown, Minus, Brain, Activity, AlertTriangle, CheckCircle2, Sparkles } from "lucide-react";
-import { ELMState } from "@/types";
+import { TrendingUp, TrendingDown, Minus, Brain, Activity, AlertTriangle, CheckCircle2, Sparkles, ShieldCheck, ShieldX, Target, BarChart3, Zap } from "lucide-react";
+import { ELMState, ELMValidationGates } from "@/types";
 import { TelemetryCard } from "./TelemetryCard";
 import { ProgressBar } from "./ProgressBar";
 
@@ -60,6 +60,51 @@ function getOutcomeEmoji(outcome: string) {
   }
 }
 
+// Validation Gate Component
+function ValidationGate({ 
+  label, 
+  value, 
+  threshold, 
+  passed, 
+  unit = "%",
+  comparison = ">"
+}: { 
+  label: string; 
+  value: number; 
+  threshold: number; 
+  passed: boolean;
+  unit?: string;
+  comparison?: ">" | "<";
+}) {
+  const displayValue = unit === "%" ? (value * 100).toFixed(1) : value.toFixed(3);
+  const displayThreshold = unit === "%" ? threshold * 100 : threshold;
+  
+  return (
+    <div className={`flex items-center justify-between p-2 rounded-md border ${
+      passed 
+        ? "bg-success/10 border-success/30" 
+        : "bg-muted/50 border-border"
+    }`}>
+      <div className="flex items-center gap-2">
+        {passed ? (
+          <ShieldCheck className="h-4 w-4 text-success" />
+        ) : (
+          <ShieldX className="h-4 w-4 text-muted-foreground" />
+        )}
+        <span className="text-xs text-muted-foreground">{label}</span>
+      </div>
+      <div className="flex items-center gap-1.5">
+        <span className={`text-xs font-mono ${passed ? "text-success" : "text-foreground"}`}>
+          {displayValue}{unit}
+        </span>
+        <span className="text-xs text-muted-foreground">
+          ({comparison}{displayThreshold}{unit})
+        </span>
+      </div>
+    </div>
+  );
+}
+
 export const ELMCard = forwardRef<HTMLDivElement, ELMCardProps>(
   function ELMCard({ elm }, ref) {
     const driftConfig = getDriftStatusConfig(elm.driftStatus);
@@ -72,6 +117,8 @@ export const ELMCard = forwardRef<HTMLDivElement, ELMCardProps>(
           .slice(0, 4)
       : [];
 
+    const validation = elm.validation;
+
     return (
       <div ref={ref}>
         <TelemetryCard
@@ -79,6 +126,79 @@ export const ELMCard = forwardRef<HTMLDivElement, ELMCardProps>(
           title="⚡ ELM (Emotional Learning)"
         >
           <div className="space-y-4">
+            {/* Validation Status Banner */}
+            {validation && (
+              <div className={`flex items-center justify-between p-2.5 rounded-lg border ${
+                validation.overallStatus === "LEARNING"
+                  ? "bg-success/15 border-success/40"
+                  : "bg-muted/50 border-border"
+              }`}>
+                <div className="flex items-center gap-2">
+                  {validation.overallStatus === "LEARNING" ? (
+                    <Zap className="h-5 w-5 text-success animate-pulse" />
+                  ) : (
+                    <BarChart3 className="h-5 w-5 text-muted-foreground" />
+                  )}
+                  <div>
+                    <div className={`text-sm font-semibold ${
+                      validation.overallStatus === "LEARNING" ? "text-success" : "text-foreground"
+                    }`}>
+                      {validation.overallStatus === "LEARNING" ? "LEARNING ✓" : "LOGGING"}
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      {validation.gatesPassed}/3 gates passed
+                    </div>
+                  </div>
+                </div>
+                {validation.overallStatus === "LEARNING" && (
+                  <div className="flex gap-0.5">
+                    {[0, 1, 2].map((i) => (
+                      <div 
+                        key={i} 
+                        className="w-2 h-2 rounded-full bg-success"
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Three Hard Gates */}
+            {validation && (
+              <div className="space-y-2">
+                <div className="text-xs font-semibold text-primary uppercase tracking-wide flex items-center gap-1.5">
+                  <Target className="h-3 w-3" />
+                  Validation Gates
+                </div>
+                <div className="space-y-1.5">
+                  <ValidationGate
+                    label="Convergence"
+                    value={validation.convergence.variance}
+                    threshold={0.05}
+                    passed={validation.convergence.passed}
+                    unit=""
+                    comparison="<"
+                  />
+                  <ValidationGate
+                    label="Prediction"
+                    value={validation.prediction.accuracy}
+                    threshold={0.60}
+                    passed={validation.prediction.passed}
+                    unit="%"
+                    comparison=">"
+                  />
+                  <ValidationGate
+                    label="Improvement"
+                    value={validation.improvement.percentOverBaseline / 100}
+                    threshold={0.20}
+                    passed={validation.improvement.passed}
+                    unit="%"
+                    comparison=">"
+                  />
+                </div>
+              </div>
+            )}
+
             {/* Primary Metrics Row */}
             <div className="grid grid-cols-2 gap-3">
               {/* Tactic Score */}
