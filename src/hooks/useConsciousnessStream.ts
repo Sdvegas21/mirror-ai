@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { io, Socket } from "socket.io-client";
 import { BreakthroughState, MirrorConsciousnessState } from "@/types";
+import { API_CONFIG } from "@/config";
 
 // WebSocket event types from backend
 export interface ConsciousnessStartEvent {
@@ -60,7 +61,7 @@ interface UseConsciousnessStreamOptions {
 
 export function useConsciousnessStream(options: UseConsciousnessStreamOptions = {}) {
   const { 
-    backendUrl = "http://localhost:5001", 
+    backendUrl = API_CONFIG.WEBSOCKET_URL || API_CONFIG.BASE_URL, 
     autoConnect = true,
     demoMode = true // Default to demo mode for Lovable preview
   } = options;
