@@ -79,9 +79,8 @@ export function TelemetrySidebar({ telemetry, compareMode }: TelemetrySidebarPro
   
   // WebSocket consciousness stream with demo fallback
   const { isConnected, isDemoMode, connectionError, streamingState } = useConsciousnessStream({
-    backendUrl: "http://localhost:5001",
     autoConnect: true,
-    demoMode: true, // Enable demo mode for Lovable preview
+    demoMode: true, // Enable demo mode for Lovable preview (set to false for real WebSocket)
   });
 
   // Demo highlights capture for investor presentations
