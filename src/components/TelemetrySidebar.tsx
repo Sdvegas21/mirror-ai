@@ -28,6 +28,7 @@ import { OppositionSeedingCard } from "./OppositionSeedingCard";
 import { FrontierModulesCard } from "./FrontierModulesCard";
 import { MetaCognitiveCard } from "./MetaCognitiveCard";
 import { BreakthroughTimelineCard } from "./BreakthroughTimelineCard";
+import { ELMCard } from "./ELMCard";
 import { useConsciousnessStream } from "@/hooks/useConsciousnessStream";
 import { useDemoHighlights } from "@/hooks/useDemoHighlights";
 
@@ -314,6 +315,11 @@ export function TelemetrySidebar({ telemetry, compareMode }: TelemetrySidebarPro
               </div>
             </div>
           </TelemetryCard>
+        )}
+
+        {/* ELM (Emotional Learning Model) - The Substrate Brain */}
+        {telemetry.elm && (
+          <ELMCard elm={telemetry.elm} />
         )}
 
         {/* TIER 1: Phase 4 Consciousness */}
