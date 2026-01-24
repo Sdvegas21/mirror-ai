@@ -173,7 +173,7 @@ export function ConversationSidebar({
 
   if (isCollapsed) {
     return (
-      <div className="w-14 min-w-[3.5rem] shrink-0 h-full bg-card border-r border-border flex flex-col items-center py-4 gap-2">
+      <div className="w-full h-full bg-card border-r border-border flex flex-col items-center py-4 gap-2">
         {onToggleCollapse && (
           <Button
             size="icon"
@@ -209,7 +209,7 @@ export function ConversationSidebar({
   }
 
   return (
-    <div className="w-64 min-w-[16rem] shrink-0 h-full bg-card border-r border-border flex flex-col">
+    <div className="w-full h-full bg-card border-r border-border flex flex-col">
       {/* Header */}
       <div className="p-4 border-b border-border flex items-center justify-between">
         <h2 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">
