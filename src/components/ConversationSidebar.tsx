@@ -3,6 +3,7 @@ import { Plus, MessageSquare, Trash2, Edit2, Check, X, ChevronDown, ChevronRight
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import { Conversation } from '@/types/conversation';
 
@@ -102,12 +103,24 @@ function ConversationItem({
         </div>
       ) : (
         <>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium truncate">{conversation.title}</p>
-            {conversation.preview && (
-              <p className="text-xs text-muted-foreground truncate">{conversation.preview}</p>
-            )}
-          </div>
+          <TooltipProvider delayDuration={300}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium truncate">{conversation.title}</p>
+                  {conversation.preview && (
+                    <p className="text-xs text-muted-foreground truncate">{conversation.preview}</p>
+                  )}
+                </div>
+              </TooltipTrigger>
+              <TooltipContent side="right" className="max-w-[300px] bg-popover text-popover-foreground border border-border z-50">
+                <p className="font-medium">{conversation.title}</p>
+                {conversation.preview && (
+                  <p className="text-xs text-muted-foreground mt-1">{conversation.preview}</p>
+                )}
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
           
           <div className="hidden group-hover:flex items-center gap-1">
             <Button 
