@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, MessageSquare, Trash2, Edit2, Check, X, ChevronDown, ChevronRight } from 'lucide-react';
+import { Plus, MessageSquare, Trash2, Edit2, Check, X, ChevronDown, ChevronRight, PanelLeft, PanelLeftClose } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
@@ -27,6 +27,7 @@ interface ConversationSidebarProps {
   isLoading: boolean;
   compareMode: boolean;
   isCollapsed?: boolean;
+  onToggleCollapse?: () => void;
 }
 
 interface ConversationItemProps {
@@ -152,13 +153,25 @@ export function ConversationSidebar({
   isLoading,
   compareMode,
   isCollapsed = false,
+  onToggleCollapse,
 }: ConversationSidebarProps) {
   const [standardOpen, setStandardOpen] = useState(true);
   const [eosOpen, setEosOpen] = useState(true);
 
   if (isCollapsed) {
     return (
-      <div className="w-14 h-full bg-card border-r border-border flex flex-col items-center py-4 gap-4">
+      <div className="w-14 h-full bg-card border-r border-border flex flex-col items-center py-4 gap-2">
+        {onToggleCollapse && (
+          <Button
+            size="icon"
+            variant="ghost"
+            onClick={onToggleCollapse}
+            title="Expand sidebar"
+            className="mb-2"
+          >
+            <PanelLeft className="h-4 w-4" />
+          </Button>
+        )}
         <Button
           size="icon"
           variant="ghost"
@@ -185,10 +198,21 @@ export function ConversationSidebar({
   return (
     <div className="w-64 h-full bg-card border-r border-border flex flex-col">
       {/* Header */}
-      <div className="p-4 border-b border-border">
+      <div className="p-4 border-b border-border flex items-center justify-between">
         <h2 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">
           Conversations
         </h2>
+        {onToggleCollapse && (
+          <Button
+            size="icon"
+            variant="ghost"
+            onClick={onToggleCollapse}
+            title="Collapse sidebar"
+            className="h-7 w-7"
+          >
+            <PanelLeftClose className="h-4 w-4" />
+          </Button>
+        )}
       </div>
 
       <ScrollArea className="flex-1">

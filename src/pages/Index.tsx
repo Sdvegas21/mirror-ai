@@ -8,7 +8,6 @@ import { useConversations } from "@/hooks/useConversations";
 import { eosClient } from "@/api/eosClient";
 import { conversationClient } from "@/api/conversationClient";
 import { toast } from "sonner";
-import { PanelLeftClose, PanelLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 function generateId(): string {
@@ -637,18 +636,8 @@ export default function Index() {
           isLoading={conversations.isLoading}
           compareMode={state.compareMode}
           isCollapsed={sidebarCollapsed}
+          onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
         />
-
-        {/* Sidebar Toggle */}
-        <Button
-          variant="ghost"
-          size="icon"
-          className="absolute left-64 top-20 z-10 hidden lg:flex"
-          onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-          style={{ left: sidebarCollapsed ? '56px' : '256px' }}
-        >
-          {sidebarCollapsed ? <PanelLeft className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
-        </Button>
 
         {/* Main Content */}
         <main className="flex-1 p-4 lg:p-6 overflow-hidden">
