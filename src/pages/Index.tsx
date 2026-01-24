@@ -3,6 +3,7 @@ import { HeaderBar } from "@/components/HeaderBar";
 import { ChatPanel } from "@/components/ChatPanel";
 import { TelemetrySidebar } from "@/components/TelemetrySidebar";
 import { ConversationSidebar } from "@/components/ConversationSidebar";
+import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
 import { AppState, Message, UserOption } from "@/types";
 import { useConversations } from "@/hooks/useConversations";
 import { eosClient } from "@/api/eosClient";
@@ -621,62 +622,75 @@ export default function Index() {
       />
 
       <div className="flex-1 flex overflow-hidden">
-        {/* Conversation Sidebar */}
-        <ConversationSidebar
-          standardConversations={conversations.standardConversations}
-          activeStandardConversationId={conversations.activeStandardConversationId}
-          onSelectStandardConversation={handleSelectStandardConversation}
-          onCreateStandardConversation={handleCreateStandardConversation}
-          eosConversations={conversations.eosConversations}
-          activeEosConversationId={conversations.activeEosConversationId}
-          onSelectEosConversation={handleSelectEosConversation}
-          onCreateEosConversation={handleCreateEosConversation}
-          onDeleteConversation={handleDeleteConversation}
-          onRenameConversation={handleRenameConversation}
-          isLoading={conversations.isLoading}
-          compareMode={state.compareMode}
-          isCollapsed={sidebarCollapsed}
-          onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
-        />
-
-        {/* Main Content */}
-        <main className="flex-1 p-4 lg:p-6 overflow-hidden">
-          <div
-            className={`grid gap-4 lg:gap-6 h-[calc(100vh-7rem)] ${
-              state.compareMode
-                ? "grid-cols-1 lg:grid-cols-[2fr_2fr_1fr]"
-                : "grid-cols-1 lg:grid-cols-[2fr_1fr]"
-            }`}
+        <ResizablePanelGroup direction="horizontal" className="h-full">
+          {/* Resizable Conversation Sidebar */}
+          <ResizablePanel 
+            defaultSize={15} 
+            minSize={sidebarCollapsed ? 3 : 10} 
+            maxSize={30}
+            className="h-full"
           >
-            {/* Standard AI - only in compare mode */}
-            {state.compareMode && (
-              <ChatPanel
-                title="Standard AI"
-                variant="standard"
-                messages={state.standardMessages}
-                onSendMessage={handleSendMessage}
-                onClearChat={handleClearStandardChat}
-                isLoading={isLoading}
-              />
-            )}
-
-            {/* EOS-Powered AI */}
-            <ChatPanel
-              title="EOS-Powered AI"
-              variant="eos"
-              messages={state.eosMessages}
-              onSendMessage={handleSendMessage}
-              onClearChat={handleClearEosChat}
-              isLoading={isLoading}
-            />
-
-            {/* Telemetry Sidebar */}
-            <TelemetrySidebar
-              telemetry={state.telemetry}
+            <ConversationSidebar
+              standardConversations={conversations.standardConversations}
+              activeStandardConversationId={conversations.activeStandardConversationId}
+              onSelectStandardConversation={handleSelectStandardConversation}
+              onCreateStandardConversation={handleCreateStandardConversation}
+              eosConversations={conversations.eosConversations}
+              activeEosConversationId={conversations.activeEosConversationId}
+              onSelectEosConversation={handleSelectEosConversation}
+              onCreateEosConversation={handleCreateEosConversation}
+              onDeleteConversation={handleDeleteConversation}
+              onRenameConversation={handleRenameConversation}
+              isLoading={conversations.isLoading}
               compareMode={state.compareMode}
+              isCollapsed={sidebarCollapsed}
+              onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
             />
-          </div>
-        </main>
+          </ResizablePanel>
+
+          <ResizableHandle withHandle className="bg-border hover:bg-primary/20 transition-colors" />
+
+          {/* Main Content */}
+          <ResizablePanel defaultSize={85} className="h-full">
+            <main className="h-full p-4 lg:p-6 overflow-hidden">
+              <div
+                className={`grid gap-4 lg:gap-6 h-[calc(100vh-7rem)] ${
+                  state.compareMode
+                    ? "grid-cols-1 lg:grid-cols-[2fr_2fr_1fr]"
+                    : "grid-cols-1 lg:grid-cols-[2fr_1fr]"
+                }`}
+              >
+                {/* Standard AI - only in compare mode */}
+                {state.compareMode && (
+                  <ChatPanel
+                    title="Standard AI"
+                    variant="standard"
+                    messages={state.standardMessages}
+                    onSendMessage={handleSendMessage}
+                    onClearChat={handleClearStandardChat}
+                    isLoading={isLoading}
+                  />
+                )}
+
+                {/* EOS-Powered AI */}
+                <ChatPanel
+                  title="EOS-Powered AI"
+                  variant="eos"
+                  messages={state.eosMessages}
+                  onSendMessage={handleSendMessage}
+                  onClearChat={handleClearEosChat}
+                  isLoading={isLoading}
+                />
+
+                {/* Telemetry Sidebar */}
+                <TelemetrySidebar
+                  telemetry={state.telemetry}
+                  compareMode={state.compareMode}
+                />
+              </div>
+            </main>
+          </ResizablePanel>
+        </ResizablePanelGroup>
       </div>
     </div>
   );
