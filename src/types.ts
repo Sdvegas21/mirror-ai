@@ -249,6 +249,12 @@ export interface TelemetryState {
   rntExtended?: RNTExtended;
   // ELM (Emotional Learning Model) - The Substrate Brain
   elm?: ELMState;
+  // BCP/RNT Extended: Undeniable Architecture
+  qseal?: import("./types/bcp-rnt").QSEALState;
+  patternLibrary?: import("./types/bcp-rnt").PatternLibraryState;
+  metacognitiveSynthesis?: import("./types/bcp-rnt").MetacognitiveSynthesisState;
+  cognitiveDriftTimeline?: import("./types/bcp-rnt").CognitiveDriftTimelineState;
+  relationshipEvolution?: import("./types/bcp-rnt").RelationshipEvolutionState;
 }
 
 export interface AppState {
