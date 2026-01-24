@@ -8,6 +8,7 @@ export const API_CONFIG = {
     TELEMETRY: '/telemetry',
     EXPORT: '/export',
     IMPORT: '/import',
-    HISTORY: '/history'
+    HISTORY: '/history',
+    CONVERSATIONS: '/conversations',
   }
 };

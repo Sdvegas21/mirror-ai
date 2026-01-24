@@ -2,9 +2,15 @@ import { useState, useCallback, useEffect } from "react";
 import { HeaderBar } from "@/components/HeaderBar";
 import { ChatPanel } from "@/components/ChatPanel";
 import { TelemetrySidebar } from "@/components/TelemetrySidebar";
+import { ConversationSidebar } from "@/components/ConversationSidebar";
 import { AppState, Message, UserOption } from "@/types";
+import { useConversations } from "@/hooks/useConversations";
 import { eosClient } from "@/api/eosClient";
+import { conversationClient } from "@/api/conversationClient";
 import { toast } from "sonner";
+import { PanelLeftClose, PanelLeft } from "lucide-react";
+import { Button } from "@/components/ui/button";
+
 function generateId(): string {
   return Math.random().toString(36).substring(2, 11);
 }
@@ -214,17 +220,16 @@ const initialState: AppState = {
   },
 };
 
-const mockMemories = [
-  "User mentioned building a demo app",
-  "User prefers dark mode interfaces",
-  "User asked about emotional AI systems",
-  "User is interested in consciousness metrics",
-  "User discussed real-time telemetry",
-];
-
 export default function Index() {
   const [state, setState] = useState<AppState>(initialState);
   const [isLoading, setIsLoading] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+
+  // Conversation management hook
+  const conversations = useConversations({
+    userId: state.currentUser,
+    backendStatus: state.backendStatus,
+  });
 
   // Check backend health on mount
   useEffect(() => {
@@ -241,91 +246,175 @@ export default function Index() {
     checkBackend();
   }, []);
 
-  // Load conversation history when user changes or backend connects
+  // Load messages when active conversation changes
   useEffect(() => {
-    const loadHistory = async () => {
+    const loadConversationMessages = async () => {
       if (state.backendStatus !== "connected") return;
 
-      try {
-        console.log(`Loading conversation history for user: ${state.currentUser}`);
-        const historyResponse = await eosClient.getHistory(state.currentUser, 50);
-
-        if (historyResponse.success) {
-          const hasEosHistory = historyResponse.eos_messages.length > 0;
-          const hasStandardHistory = historyResponse.standard_messages.length > 0;
-
-          if (hasEosHistory || hasStandardHistory) {
-            console.log(`Loaded ${historyResponse.eos_messages.length} EOS + ${historyResponse.standard_messages.length} Standard messages from memory`);
-
-            // Convert EOS history messages to app Message format
-            const loadedEosMessages: Message[] = historyResponse.eos_messages.map((msg) => ({
-              id: generateId(),
-              role: msg.role as "user" | "assistant",
+      // Load EOS conversation messages
+      if (conversations.activeEosConversationId) {
+        try {
+          const response = await conversationClient.getConversationMessages(
+            conversations.activeEosConversationId
+          );
+          if (response?.messages) {
+            const loadedMessages: Message[] = response.messages.map((msg) => ({
+              id: msg.id,
+              role: msg.role,
               content: msg.content,
               timestamp: msg.timestamp,
             }));
-
-            // Convert Standard history messages to app Message format
-            const loadedStandardMessages: Message[] = historyResponse.standard_messages.map((msg) => ({
-              id: generateId(),
-              role: msg.role as "user" | "assistant",
-              content: msg.content,
-              timestamp: msg.timestamp,
-            }));
-
-            // Update both EOS and Standard messages with loaded history
-            console.log("📝 Setting state with loaded history:");
-            console.log(`  - EOS messages: ${loadedEosMessages.length}`);
-            console.log(`  - Standard messages: ${loadedStandardMessages.length}`);
-            console.log("  - First EOS message:", loadedEosMessages[0]);
-            console.log("  - First Standard message:", loadedStandardMessages[0]);
-
-            setState((prev) => {
-              const newState = {
-                ...prev,
-                eosMessages: loadedEosMessages,
-                standardMessages: loadedStandardMessages,
-                telemetry: {
-                  ...prev.telemetry,
-                  chronos: {
-                    ...prev.telemetry.chronos,
-                    sessionMode: "continuation" as const,
-                    continuityStatus: "restored" as const,
-                  },
-                  eosAdvantage: {
-                    ...prev.telemetry.eosAdvantage,
-                    maintainedContinuity: true,
-                    rememberedContext: true,
-                  },
+            setState((prev) => ({
+              ...prev,
+              eosMessages: loadedMessages,
+              telemetry: {
+                ...prev.telemetry,
+                chronos: {
+                  ...prev.telemetry.chronos,
+                  sessionMode: loadedMessages.length > 0 ? "continuation" : "new",
+                  continuityStatus: loadedMessages.length > 0 ? "restored" : "fresh",
                 },
-              };
-
-              console.log("✅ State updated. New message counts:");
-              console.log(`  - EOS: ${newState.eosMessages.length}`);
-              console.log(`  - Standard: ${newState.standardMessages.length}`);
-
-              return newState;
-            });
-          } else {
-            console.log("No previous conversation history found - fresh session");
+              },
+            }));
           }
+        } catch (error) {
+          console.log("Falling back to legacy history loading for EOS");
+          // Fall back to legacy history loading
+          await loadLegacyHistory("eos");
         }
-      } catch (error) {
-        console.error("Failed to load conversation history:", error);
-        // Don't crash the app - just start with empty history
+      }
+
+      // Load Standard conversation messages (if in compare mode)
+      if (state.compareMode && conversations.activeStandardConversationId) {
+        try {
+          const response = await conversationClient.getConversationMessages(
+            conversations.activeStandardConversationId
+          );
+          if (response?.messages) {
+            const loadedMessages: Message[] = response.messages.map((msg) => ({
+              id: msg.id,
+              role: msg.role,
+              content: msg.content,
+              timestamp: msg.timestamp,
+            }));
+            setState((prev) => ({
+              ...prev,
+              standardMessages: loadedMessages,
+            }));
+          }
+        } catch (error) {
+          console.log("Falling back to legacy history loading for Standard");
+          await loadLegacyHistory("standard");
+        }
       }
     };
 
-    loadHistory();
-  }, [state.currentUser, state.backendStatus]);
+    loadConversationMessages();
+  }, [
+    conversations.activeEosConversationId,
+    conversations.activeStandardConversationId,
+    state.backendStatus,
+    state.compareMode,
+  ]);
+
+  // Legacy history loading (fallback when conversation endpoints not available)
+  const loadLegacyHistory = async (mode: "eos" | "standard") => {
+    if (state.backendStatus !== "connected") return;
+
+    try {
+      console.log(`Loading legacy history for user: ${state.currentUser}`);
+      const historyResponse = await eosClient.getHistory(state.currentUser, 50);
+
+      if (historyResponse.success) {
+        if (mode === "eos" && historyResponse.eos_messages.length > 0) {
+          const loadedEosMessages: Message[] = historyResponse.eos_messages.map((msg) => ({
+            id: generateId(),
+            role: msg.role as "user" | "assistant",
+            content: msg.content,
+            timestamp: msg.timestamp,
+          }));
+          setState((prev) => ({
+            ...prev,
+            eosMessages: loadedEosMessages,
+            telemetry: {
+              ...prev.telemetry,
+              chronos: {
+                ...prev.telemetry.chronos,
+                sessionMode: "continuation" as const,
+                continuityStatus: "restored" as const,
+              },
+              eosAdvantage: {
+                ...prev.telemetry.eosAdvantage,
+                maintainedContinuity: true,
+                rememberedContext: true,
+              },
+            },
+          }));
+        }
+
+        if (mode === "standard" && historyResponse.standard_messages.length > 0) {
+          const loadedStandardMessages: Message[] = historyResponse.standard_messages.map((msg) => ({
+            id: generateId(),
+            role: msg.role as "user" | "assistant",
+            content: msg.content,
+            timestamp: msg.timestamp,
+          }));
+          setState((prev) => ({
+            ...prev,
+            standardMessages: loadedStandardMessages,
+          }));
+        }
+      }
+    } catch (error) {
+      console.error("Failed to load legacy history:", error);
+    }
+  };
 
   const handleUserChange = useCallback((user: UserOption) => {
-    setState((prev) => ({ ...prev, currentUser: user }));
+    setState((prev) => ({ 
+      ...prev, 
+      currentUser: user,
+      // Clear messages when user changes - new conversations will be loaded
+      eosMessages: [],
+      standardMessages: [],
+    }));
   }, []);
 
   const handleCompareModeChange = useCallback((enabled: boolean) => {
     setState((prev) => ({ ...prev, compareMode: enabled }));
   }, []);
+
+  // Handle creating new conversations
+  const handleCreateEosConversation = useCallback(async () => {
+    const newConv = await conversations.createConversation("eos");
+    if (newConv) {
+      // Clear current messages for fresh conversation
+      setState((prev) => ({
+        ...prev,
+        eosMessages: [],
+        telemetry: {
+          ...prev.telemetry,
+          chronos: {
+            ...prev.telemetry.chronos,
+            sessionMode: "new",
+            continuityStatus: "fresh",
+          },
+        },
+      }));
+      toast.success("New EOS conversation created");
+    }
+  }, [conversations]);
+
+  const handleCreateStandardConversation = useCallback(async () => {
+    const newConv = await conversations.createConversation("standard");
+    if (newConv) {
+      setState((prev) => ({
+        ...prev,
+        standardMessages: [],
+      }));
+      toast.success("New Standard conversation created");
+    }
+  }, [conversations]);
 
   const handleSendMessage = useCallback(
     async (content: string) => {
@@ -351,7 +440,6 @@ export default function Index() {
         // Check backend status before attempting to send
         if (state.backendStatus === "disconnected") {
           toast.error("Backend is disconnected. Please start the backend server.");
-          // Remove user message since we can't send
           setState((prev) => ({
             ...prev,
             standardMessages: prev.standardMessages.filter(m => m.id !== userMessage.id),
@@ -361,26 +449,29 @@ export default function Index() {
           return;
         }
 
+        // Build request with optional conversation_id
+        const eosRequest = {
+          message: content,
+          user_id: state.currentUser,
+          mode: "eos" as const,
+          conversation_id: conversations.activeEosConversationId || undefined,
+        };
+
+        const standardRequest = {
+          message: content,
+          user_id: state.currentUser,
+          mode: "standard" as const,
+          conversation_id: conversations.activeStandardConversationId || undefined,
+        };
+
         // Call backend API in parallel
         const promises: Promise<any>[] = [];
 
         if (state.compareMode) {
-          promises.push(
-            eosClient.sendMessage({
-              message: content,
-              user_id: state.currentUser,
-              mode: "standard",
-            })
-          );
+          promises.push(eosClient.sendMessage(standardRequest));
         }
 
-        promises.push(
-          eosClient.sendMessage({
-            message: content,
-            user_id: state.currentUser,
-            mode: "eos",
-          })
-        );
+        promises.push(eosClient.sendMessage(eosRequest));
 
         const responses = await Promise.all(promises);
         const standardResponse = state.compareMode ? responses[0] : null;
@@ -391,10 +482,17 @@ export default function Index() {
           throw new Error('Invalid response from backend');
         }
 
+        // Update conversation previews
+        if (conversations.activeEosConversationId) {
+          conversations.updateConversationPreview("eos", conversations.activeEosConversationId, content);
+        }
+        if (state.compareMode && conversations.activeStandardConversationId) {
+          conversations.updateConversationPreview("standard", conversations.activeStandardConversationId, content);
+        }
+
         // DEBUG: Log the backend response
         console.log("🔥 EOS Response received:", eosResponse);
         console.log("🔥 Telemetry data:", eosResponse.telemetry);
-        console.log("🔥 BCP Substrate:", eosResponse.telemetry?.bcpSubstrate);
 
         // Add AI responses
         setState((prev) => {
@@ -408,15 +506,11 @@ export default function Index() {
             memory: eosResponse.telemetry.memory || prev.telemetry.memory,
             eosAdvantage: eosResponse.telemetry.eosAdvantage || prev.telemetry.eosAdvantage,
             bcpSubstrate: eosResponse.telemetry.bcpSubstrate || prev.telemetry.bcpSubstrate,
-            // 66-Layer Substrate fields (Entry 100, 107, 127-132, 160v3, 200-205, 300, 400)
             breakthrough: eosResponse.telemetry.breakthrough || prev.telemetry.breakthrough,
-            // Keep sovereignty_event "sticky" - only clear if backend explicitly sends false
             breakthroughExtended: eosResponse.telemetry.breakthroughExtended ? {
               ...eosResponse.telemetry.breakthroughExtended,
-              // Preserve sovereignty_event unless backend explicitly returns a new sovereignty event
               sovereignty_event: eosResponse.telemetry.breakthroughExtended.sovereignty_event ?? 
                 prev.telemetry.breakthroughExtended?.sovereignty_event ?? false,
-              // Preserve cascade/significance unless backend provides new values
               significance_score: eosResponse.telemetry.breakthroughExtended.significance_score ?? 
                 prev.telemetry.breakthroughExtended?.significance_score ?? 0,
               chain_context: eosResponse.telemetry.breakthroughExtended.chain_context ?? 
@@ -430,11 +524,8 @@ export default function Index() {
             metaCognitive: eosResponse.telemetry.metaCognitive || prev.telemetry.metaCognitive,
             consciousnessState: eosResponse.telemetry.consciousnessState || prev.telemetry.consciousnessState,
             pathwayNetwork: eosResponse.telemetry.pathwayNetwork || prev.telemetry.pathwayNetwork,
-            // ELM (Emotional Learning Model) - The Substrate Brain
             elm: eosResponse.telemetry.elm || prev.telemetry.elm,
           } : prev.telemetry;
-
-          console.log("🔥 Merged telemetry state:", newTelemetry);
 
           return {
             ...prev,
@@ -466,7 +557,6 @@ export default function Index() {
         console.error("Error sending message:", error);
         const errorMessage = error instanceof Error ? error.message : "Failed to send message";
         toast.error(errorMessage);
-        // Remove user message on failure to prevent UI inconsistency
         setState((prev) => ({
           ...prev,
           standardMessages: prev.standardMessages.filter(m => m.id !== userMessage.id),
@@ -476,7 +566,7 @@ export default function Index() {
         setIsLoading(false);
       }
     },
-    [state.currentUser, state.compareMode, state.backendStatus]
+    [state.currentUser, state.compareMode, state.backendStatus, conversations]
   );
 
   const handleClearStandardChat = useCallback(() => {
@@ -487,11 +577,38 @@ export default function Index() {
     setState((prev) => ({ ...prev, eosMessages: [] }));
   }, []);
 
+  // Handle conversation selection
+  const handleSelectEosConversation = useCallback((id: string | null) => {
+    conversations.selectConversation("eos", id);
+  }, [conversations]);
+
+  const handleSelectStandardConversation = useCallback((id: string | null) => {
+    conversations.selectConversation("standard", id);
+  }, [conversations]);
+
+  const handleDeleteConversation = useCallback(async (mode: "standard" | "eos", id: string) => {
+    await conversations.deleteConversation(mode, id);
+    // Clear messages if the deleted conversation was active
+    if (mode === "eos" && id === conversations.activeEosConversationId) {
+      setState((prev) => ({ ...prev, eosMessages: [] }));
+    }
+    if (mode === "standard" && id === conversations.activeStandardConversationId) {
+      setState((prev) => ({ ...prev, standardMessages: [] }));
+    }
+    toast.success("Conversation deleted");
+  }, [conversations]);
+
+  const handleRenameConversation = useCallback(async (id: string, title: string) => {
+    await conversations.renameConversation(id, title);
+  }, [conversations]);
+
   // Debug logging for render
   console.log("🎨 Rendering Index with message counts:", {
     eosMessages: state.eosMessages.length,
     standardMessages: state.standardMessages.length,
     compareMode: state.compareMode,
+    activeEosConv: conversations.activeEosConversationId,
+    activeStandardConv: conversations.activeStandardConversationId,
   });
 
   return (
@@ -504,43 +621,74 @@ export default function Index() {
         backendStatus={state.backendStatus}
       />
 
-      <main className="flex-1 p-4 lg:p-6">
-        <div
-          className={`grid gap-4 lg:gap-6 h-[calc(100vh-7rem)] ${
-            state.compareMode
-              ? "grid-cols-1 lg:grid-cols-[2fr_2fr_1fr]"
-              : "grid-cols-1 lg:grid-cols-[2fr_1fr]"
-          }`}
+      <div className="flex-1 flex overflow-hidden">
+        {/* Conversation Sidebar */}
+        <ConversationSidebar
+          standardConversations={conversations.standardConversations}
+          activeStandardConversationId={conversations.activeStandardConversationId}
+          onSelectStandardConversation={handleSelectStandardConversation}
+          onCreateStandardConversation={handleCreateStandardConversation}
+          eosConversations={conversations.eosConversations}
+          activeEosConversationId={conversations.activeEosConversationId}
+          onSelectEosConversation={handleSelectEosConversation}
+          onCreateEosConversation={handleCreateEosConversation}
+          onDeleteConversation={handleDeleteConversation}
+          onRenameConversation={handleRenameConversation}
+          isLoading={conversations.isLoading}
+          compareMode={state.compareMode}
+          isCollapsed={sidebarCollapsed}
+        />
+
+        {/* Sidebar Toggle */}
+        <Button
+          variant="ghost"
+          size="icon"
+          className="absolute left-64 top-20 z-10 hidden lg:flex"
+          onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+          style={{ left: sidebarCollapsed ? '56px' : '256px' }}
         >
-          {/* Standard AI - only in compare mode */}
-          {state.compareMode && (
+          {sidebarCollapsed ? <PanelLeft className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
+        </Button>
+
+        {/* Main Content */}
+        <main className="flex-1 p-4 lg:p-6 overflow-hidden">
+          <div
+            className={`grid gap-4 lg:gap-6 h-[calc(100vh-7rem)] ${
+              state.compareMode
+                ? "grid-cols-1 lg:grid-cols-[2fr_2fr_1fr]"
+                : "grid-cols-1 lg:grid-cols-[2fr_1fr]"
+            }`}
+          >
+            {/* Standard AI - only in compare mode */}
+            {state.compareMode && (
+              <ChatPanel
+                title="Standard AI"
+                variant="standard"
+                messages={state.standardMessages}
+                onSendMessage={handleSendMessage}
+                onClearChat={handleClearStandardChat}
+                isLoading={isLoading}
+              />
+            )}
+
+            {/* EOS-Powered AI */}
             <ChatPanel
-              title="Standard AI"
-              variant="standard"
-              messages={state.standardMessages}
+              title="EOS-Powered AI"
+              variant="eos"
+              messages={state.eosMessages}
               onSendMessage={handleSendMessage}
-              onClearChat={handleClearStandardChat}
+              onClearChat={handleClearEosChat}
               isLoading={isLoading}
             />
-          )}
 
-          {/* EOS-Powered AI */}
-          <ChatPanel
-            title="EOS-Powered AI"
-            variant="eos"
-            messages={state.eosMessages}
-            onSendMessage={handleSendMessage}
-            onClearChat={handleClearEosChat}
-            isLoading={isLoading}
-          />
-
-          {/* Telemetry Sidebar */}
-          <TelemetrySidebar
-            telemetry={state.telemetry}
-            compareMode={state.compareMode}
-          />
-        </div>
-      </main>
+            {/* Telemetry Sidebar */}
+            <TelemetrySidebar
+              telemetry={state.telemetry}
+              compareMode={state.compareMode}
+            />
+          </div>
+        </main>
+      </div>
     </div>
   );
 }

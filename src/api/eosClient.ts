@@ -5,6 +5,7 @@ export interface ChatRequest {
   message: string;
   user_id: string;
   mode: 'standard' | 'eos';
+  conversation_id?: string; // Optional: for multi-conversation support
 }
 
 export interface ChatResponse {
