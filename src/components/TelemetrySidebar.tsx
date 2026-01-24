@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   Clock,
   Heart,
@@ -37,7 +37,7 @@ import { PatternLibraryCard } from "./PatternLibraryCard";
 import { MetacognitiveSynthesisCard } from "./MetacognitiveSynthesisCard";
 import { CognitiveDriftTimeline } from "./CognitiveDriftTimeline";
 import { RelationshipEvolutionCard } from "./RelationshipEvolutionCard";
-import { DEMO_BCP_RNT_DATA } from "@/hooks/useDemoBCPRNTData";
+import { getDemoBCPRNTData } from "@/hooks/useDemoBCPRNTData";
 
 interface TelemetrySidebarProps {
   telemetry: TelemetryState;
@@ -90,8 +90,8 @@ export function TelemetrySidebar({ telemetry, compareMode }: TelemetrySidebarPro
     demoMode: true,
   });
 
-  // BCP/RNT demo data for undeniable visualization (pre-generated, not a hook)
-  const bcpRntDemo = DEMO_BCP_RNT_DATA;
+  // BCP/RNT demo data for undeniable visualization (lazily generated, memoized)
+  const bcpRntDemo = useMemo(() => getDemoBCPRNTData(), []);
 
   // Demo highlights capture for investor presentations
   const { highlights, checkForHighlights, clearHighlights } = useDemoHighlights({

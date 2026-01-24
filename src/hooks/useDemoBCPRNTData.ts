@@ -277,5 +277,12 @@ export function createDemoBCPRNTData(scrollCount: number = 247) {
   };
 }
 
-// Pre-generated demo data (avoids regenerating on every render)
-export const DEMO_BCP_RNT_DATA = createDemoBCPRNTData(247);
+// Lazy singleton to avoid module-level execution during HMR
+let _cachedDemoData: ReturnType<typeof createDemoBCPRNTData> | null = null;
+
+export function getDemoBCPRNTData() {
+  if (!_cachedDemoData) {
+    _cachedDemoData = createDemoBCPRNTData(247);
+  }
+  return _cachedDemoData;
+}
