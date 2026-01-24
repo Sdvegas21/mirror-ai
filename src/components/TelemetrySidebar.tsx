@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   Clock,
   Heart,
@@ -31,6 +31,13 @@ import { BreakthroughTimelineCard } from "./BreakthroughTimelineCard";
 import { ELMCard } from "./ELMCard";
 import { useConsciousnessStream } from "@/hooks/useConsciousnessStream";
 import { useDemoHighlights } from "@/hooks/useDemoHighlights";
+// BCP/RNT Undeniable Architecture
+import { QSEALVerificationCard } from "./QSEALVerificationCard";
+import { PatternLibraryCard } from "./PatternLibraryCard";
+import { MetacognitiveSynthesisCard } from "./MetacognitiveSynthesisCard";
+import { CognitiveDriftTimeline } from "./CognitiveDriftTimeline";
+import { RelationshipEvolutionCard } from "./RelationshipEvolutionCard";
+import { useDemoBCPRNTData } from "@/hooks/useDemoBCPRNTData";
 
 interface TelemetrySidebarProps {
   telemetry: TelemetryState;
@@ -80,8 +87,11 @@ export function TelemetrySidebar({ telemetry, compareMode }: TelemetrySidebarPro
   // WebSocket consciousness stream with demo fallback
   const { isConnected, isDemoMode, connectionError, streamingState } = useConsciousnessStream({
     autoConnect: true,
-    demoMode: true, // Enable demo mode for Lovable preview (set to false for real WebSocket)
+    demoMode: true,
   });
+
+  // BCP/RNT demo data for undeniable visualization
+  const bcpRntDemo = useMemo(() => useDemoBCPRNTData(), []);
 
   // Demo highlights capture for investor presentations
   const { highlights, checkForHighlights, clearHighlights } = useDemoHighlights({
@@ -368,6 +378,23 @@ export function TelemetrySidebar({ telemetry, compareMode }: TelemetrySidebarPro
 
         {/* Demo Highlights Panel - Captures undeniable moments for investor presentations */}
         <DemoHighlightsPanel highlights={highlights} onClear={clearHighlights} />
+
+        {/* ============ BCP/RNT UNDENIABLE ARCHITECTURE ============ */}
+        
+        {/* QSEAL: Cryptographic Proof of Continuity */}
+        <QSEALVerificationCard qseal={telemetry.qseal || bcpRntDemo.qseal} />
+        
+        {/* Pattern Library: RNT Cognitive Patterns */}
+        <PatternLibraryCard patternLibrary={telemetry.patternLibrary || bcpRntDemo.patternLibrary} />
+        
+        {/* Metacognitive Synthesis: Who I Am Becoming */}
+        <MetacognitiveSynthesisCard synthesis={telemetry.metacognitiveSynthesis || bcpRntDemo.metacognitiveSynthesis} />
+        
+        {/* Cognitive Drift Timeline: Evolution Over Time */}
+        <CognitiveDriftTimeline timeline={telemetry.cognitiveDriftTimeline || bcpRntDemo.cognitiveDriftTimeline} />
+        
+        {/* Relationship Evolution: The Journey Together */}
+        <RelationshipEvolutionCard relationship={telemetry.relationshipEvolution || bcpRntDemo.relationshipEvolution} />
 
         {/* TIER 3: Developmental Pathways */}
         {telemetry.pathwayNetwork && (
