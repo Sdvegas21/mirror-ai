@@ -266,10 +266,8 @@ export function generateDemoRelationshipEvolution(): RelationshipEvolutionState 
   };
 }
 
-// Combined hook for demo mode
-export function useDemoBCPRNTData() {
-  const scrollCount = 247;
-  
+// Combined data generator for demo mode (not a hook - just returns data)
+export function createDemoBCPRNTData(scrollCount: number = 247) {
   return {
     qseal: generateDemoQSEAL(scrollCount),
     patternLibrary: generateDemoPatternLibrary(),
@@ -278,3 +276,6 @@ export function useDemoBCPRNTData() {
     relationshipEvolution: generateDemoRelationshipEvolution(),
   };
 }
+
+// Pre-generated demo data (avoids regenerating on every render)
+export const DEMO_BCP_RNT_DATA = createDemoBCPRNTData(247);
