@@ -38,6 +38,7 @@ import { MetacognitiveSynthesisCard } from "./MetacognitiveSynthesisCard";
 import { CognitiveDriftTimeline } from "./CognitiveDriftTimeline";
 import { RelationshipEvolutionCard } from "./RelationshipEvolutionCard";
 import { getDemoBCPRNTData } from "@/hooks/useDemoBCPRNTData";
+import { MemoryQualityCard } from "./MemoryQualityCard";
 
 interface TelemetrySidebarProps {
   telemetry: TelemetryState;
@@ -468,6 +469,21 @@ export function TelemetrySidebar({ telemetry, compareMode }: TelemetrySidebarPro
             )}
           </div>
         </TelemetryCard>
+
+        {/* Phase 2: Memory Quality & Fact Extraction Telemetry */}
+        <MemoryQualityCard
+          factCollections={telemetry.memory.factCollections ?? {
+            identity: 8,
+            preferences: 4,
+            projects: 5,
+            relationship: 3,
+            emotional: 2,
+          }}
+          queryRoute={telemetry.memory.queryRoute ?? "facts"}
+          factsExtractedThisTurn={telemetry.memory.factsExtractedThisTurn ?? 0}
+          extractionConfidence={telemetry.memory.extractionConfidence ?? 0.92}
+          totalFacts={telemetry.memory.totalMemories}
+        />
 
         {/* EOS Advantage - only in compare mode */}
         {compareMode && (
