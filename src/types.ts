@@ -72,10 +72,26 @@ export interface MemoryItem {
   timestamp: string;
 }
 
+// Phase 2: Typed Fact Collections
+export interface FactCollections {
+  identity: number;
+  preferences: number;
+  projects: number;
+  relationship: number;
+  emotional: number;
+}
+
+export type QueryRoute = "facts" | "experiences" | "hybrid";
+
 export interface MemoryState {
   retrieved: MemoryItem[];
   storedThisTurn: number;
   totalMemories: number;
+  // Phase 2: Fact-based memory additions
+  factCollections?: FactCollections;
+  queryRoute?: QueryRoute;
+  factsExtractedThisTurn?: number;
+  extractionConfidence?: number; // 0-1 average confidence of extracted facts
 }
 
 export interface EosAdvantageState {
