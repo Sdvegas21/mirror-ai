@@ -473,14 +473,40 @@ export default function Index() {
 
         promises.push(eosClient.sendMessage(eosRequest));
 
-        const responses = await Promise.all(promises);
-        const standardResponse = state.compareMode ? responses[0] : null;
-        const eosResponse = state.compareMode ? responses[1] : responses[0];
-
-        // Validate response before using
-        if (!eosResponse || typeof eosResponse.response !== 'string') {
-          throw new Error('Invalid response from backend');
+        const responses = await Promise.allSettled(promises);
+        
+        // Extract responses with proper error handling
+        let standardResponse: any = null;
+        let eosResponse: any = null;
+        
+        if (state.compareMode) {
+          // First response is standard, second is EOS
+          if (responses[0].status === 'fulfilled') {
+            standardResponse = responses[0].value;
+          } else {
+            console.error("Standard AI request failed:", responses[0].reason);
+          }
+          if (responses[1].status === 'fulfilled') {
+            eosResponse = responses[1].value;
+          } else {
+            console.error("EOS AI request failed:", responses[1].reason);
+          }
+        } else {
+          // Only EOS request
+          if (responses[0].status === 'fulfilled') {
+            eosResponse = responses[0].value;
+          } else {
+            console.error("EOS AI request failed:", responses[0].reason);
+          }
         }
+
+        // Validate EOS response before using
+        if (!eosResponse || typeof eosResponse.response !== 'string') {
+          throw new Error('Invalid response from EOS backend');
+        }
+        
+        // Validate standard response if in compare mode
+        const hasValidStandardResponse = standardResponse && typeof standardResponse.response === 'string';
 
         // Update conversation previews
         if (conversations.activeEosConversationId) {
@@ -493,6 +519,7 @@ export default function Index() {
         // DEBUG: Log the backend response
         console.log("🔥 EOS Response received:", eosResponse);
         console.log("🔥 Telemetry data:", eosResponse.telemetry);
+        console.log("🔥 Standard Response received:", standardResponse);
 
         // Add AI responses
         setState((prev) => {
@@ -530,14 +557,14 @@ export default function Index() {
           return {
             ...prev,
             standardMessages:
-              standardResponse && prev.compareMode
+              hasValidStandardResponse && prev.compareMode
                 ? [
                     ...prev.standardMessages,
                     {
                       id: generateId(),
                       role: "assistant" as const,
                       content: standardResponse.response,
-                      timestamp: standardResponse.timestamp,
+                      timestamp: standardResponse.timestamp || new Date().toISOString(),
                     },
                   ]
                 : prev.standardMessages,
