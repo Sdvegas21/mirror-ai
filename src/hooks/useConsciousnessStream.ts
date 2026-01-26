@@ -230,6 +230,9 @@ export function useConsciousnessStream(options: UseConsciousnessStreamOptions = 
   useEffect(() => {
     if (!autoConnect) return;
 
+    // Track if we've already fallen back to demo mode to prevent loops
+    let hasStartedDemo = false;
+
     console.log(`[ConsciousnessStream] Connecting to ${backendUrl}...`);
     
     const socket = io(backendUrl, {
@@ -262,8 +265,9 @@ export function useConsciousnessStream(options: UseConsciousnessStreamOptions = 
       setConnectionError(error.message);
       setIsConnected(false);
       
-      // Fall back to demo mode if connection fails and demoMode is enabled
-      if (demoMode && !isDemoMode) {
+      // Fall back to demo mode if connection fails (only once)
+      if (demoMode && !hasStartedDemo) {
+        hasStartedDemo = true;
         console.log("[ConsciousnessStream] Falling back to demo mode...");
         runDemoSimulation();
       }
@@ -325,7 +329,7 @@ export function useConsciousnessStream(options: UseConsciousnessStreamOptions = 
       socket.disconnect();
       socketRef.current = null;
     };
-  }, [backendUrl, autoConnect, demoMode, isDemoMode, runDemoSimulation]);
+  }, [backendUrl, autoConnect, demoMode, runDemoSimulation]);
 
   // Manual connect/disconnect
   const connect = useCallback(() => {
