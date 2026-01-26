@@ -664,6 +664,7 @@ export default function Index() {
         compareMode={state.compareMode}
         onCompareModeChange={handleCompareModeChange}
         backendStatus={state.backendStatus}
+        telemetry={state.telemetry}
       />
 
       <div className="flex-1 flex overflow-hidden">

@@ -1,5 +1,5 @@
 import { ChevronDown } from "lucide-react";
-import { BackendStatus, UserOption } from "@/types";
+import { BackendStatus, UserOption, TelemetryState } from "@/types";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -7,6 +7,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Switch } from "@/components/ui/switch";
+import { TelemetryStatusIndicator } from "./TelemetryStatusIndicator";
 
 interface HeaderBarProps {
   currentUser: UserOption;
@@ -14,6 +15,7 @@ interface HeaderBarProps {
   compareMode: boolean;
   onCompareModeChange: (enabled: boolean) => void;
   backendStatus: BackendStatus;
+  telemetry?: TelemetryState;
 }
 
 const users: UserOption[] = ["Shawn", "Bob", "Guest"];
@@ -24,6 +26,7 @@ export function HeaderBar({
   compareMode,
   onCompareModeChange,
   backendStatus,
+  telemetry,
 }: HeaderBarProps) {
   const statusConfig = {
     disconnected: {
@@ -74,8 +77,13 @@ export function HeaderBar({
           </DropdownMenu>
         </div>
 
-        {/* Right - Compare Mode + Status */}
+        {/* Right - Telemetry Status + Compare Mode + Status */}
         <div className="flex items-center gap-4">
+          {/* Telemetry Status Indicator */}
+          {telemetry && backendStatus === "connected" && (
+            <TelemetryStatusIndicator telemetry={telemetry} />
+          )}
+          
           <div className="flex items-center gap-2">
             <label
               htmlFor="compare-mode"
