@@ -717,17 +717,15 @@ export default function Index() {
                 >
                   {/* Standard AI - only in compare mode */}
                   {state.compareMode && (
-                    <div className="flex flex-col h-full gap-4">
-                      <ChatPanel
-                        title="Standard AI"
-                        variant="standard"
-                        messages={state.standardMessages}
-                        onSendMessage={handleSendMessage}
-                        onClearChat={handleClearStandardChat}
-                        isLoading={isLoading}
-                        hideInput={state.compareMode}
-                      />
-                    </div>
+                    <ChatPanel
+                      title="Standard AI"
+                      variant="standard"
+                      messages={state.standardMessages}
+                      onSendMessage={handleSendMessage}
+                      onClearChat={handleClearStandardChat}
+                      isLoading={isLoading}
+                      hideInput={state.compareMode}
+                    />
                   )}
 
                   {/* EOS-Powered AI */}
