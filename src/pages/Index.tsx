@@ -9,6 +9,7 @@ import { useConversations } from "@/hooks/useConversations";
 import { eosClient } from "@/api/eosClient";
 import { conversationClient } from "@/api/conversationClient";
 import { CompareInput } from "@/components/CompareInput";
+import { LivePadCausalityBanner } from "@/components/LivePadCausalityBanner";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 
@@ -658,6 +659,12 @@ export default function Index() {
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
+      {/* Live PAD Causality Banner - shows when emotional state changes */}
+      <LivePadCausalityBanner 
+        pad={state.telemetry.pad} 
+        isVisible={state.compareMode}
+      />
+      
       <HeaderBar
         currentUser={state.currentUser}
         onUserChange={handleUserChange}
@@ -710,15 +717,17 @@ export default function Index() {
                 >
                   {/* Standard AI - only in compare mode */}
                   {state.compareMode && (
-                    <ChatPanel
-                      title="Standard AI"
-                      variant="standard"
-                      messages={state.standardMessages}
-                      onSendMessage={handleSendMessage}
-                      onClearChat={handleClearStandardChat}
-                      isLoading={isLoading}
-                      hideInput={state.compareMode}
-                    />
+                    <div className="flex flex-col h-full gap-4">
+                      <ChatPanel
+                        title="Standard AI"
+                        variant="standard"
+                        messages={state.standardMessages}
+                        onSendMessage={handleSendMessage}
+                        onClearChat={handleClearStandardChat}
+                        isLoading={isLoading}
+                        hideInput={state.compareMode}
+                      />
+                    </div>
                   )}
 
                   {/* EOS-Powered AI */}
@@ -730,6 +739,11 @@ export default function Index() {
                     onClearChat={handleClearEosChat}
                     isLoading={isLoading}
                     hideInput={state.compareMode}
+                    // Substrate data for response markers
+                    pad={state.telemetry.pad}
+                    rnt={state.telemetry.bcpSubstrate?.rnt}
+                    relationshipDepth={state.telemetry.consciousness.relationshipDepth}
+                    breakthroughProbability={state.telemetry.breakthrough?.breakthroughProbability}
                   />
 
                   {/* Telemetry Sidebar */}

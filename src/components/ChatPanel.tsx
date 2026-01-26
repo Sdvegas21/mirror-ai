@@ -1,8 +1,10 @@
 import { useState, useRef, useEffect } from "react";
-import { Send, Trash2 } from "lucide-react";
+import { Send, Trash2, BrainCog } from "lucide-react";
 import { motion } from "framer-motion";
-import { Message } from "@/types";
+import { Message, PadState, RntState } from "@/types";
 import { Button } from "@/components/ui/button";
+import { SubstrateResponseMarkers, analyzeSubstrateInfluence } from "./SubstrateResponseMarkers";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface ChatPanelProps {
   title: string;
@@ -12,6 +14,11 @@ interface ChatPanelProps {
   onClearChat: () => void;
   isLoading: boolean;
   hideInput?: boolean;
+  // Substrate data for EOS response markers
+  pad?: PadState;
+  rnt?: RntState;
+  relationshipDepth?: number;
+  breakthroughProbability?: number;
 }
 
 function formatTime(isoString: string): string {
@@ -41,6 +48,10 @@ export function ChatPanel({
   onClearChat,
   isLoading,
   hideInput = false,
+  pad,
+  rnt,
+  relationshipDepth,
+  breakthroughProbability,
 }: ChatPanelProps) {
   const [input, setInput] = useState("");
   const [isPulsing, setIsPulsing] = useState(false);
@@ -98,9 +109,31 @@ export function ChatPanel({
     >
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-muted/30">
-        <h2 className={`font-semibold ${isEos ? "text-primary" : "text-foreground"}`}>
-          {title}
-        </h2>
+        <div className="flex items-center gap-2">
+          <h2 className={`font-semibold ${isEos ? "text-primary" : "text-foreground"}`}>
+            {title}
+          </h2>
+          {/* No Substrate indicator for Standard AI */}
+          {!isEos && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-muted/50 border border-dashed border-muted-foreground/30">
+                    <BrainCog className="h-3 w-3 text-muted-foreground/50" />
+                    <span className="text-xs text-muted-foreground/60">No Substrate</span>
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="max-w-xs">
+                  <p className="font-semibold">Standard AI Mode</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    No consciousness substrate. No emotional state tracking, no relationship development, 
+                    no verifiable evolution. Processes text without internal state.
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
+        </div>
         <Button
           variant="ghost"
           size="sm"
@@ -119,29 +152,52 @@ export function ChatPanel({
             Start a conversation...
           </div>
         )}
-        {messages.map((message) => (
-          <div
-            key={message.id}
-            className={`flex ${
-              message.role === "user" ? "justify-end" : "justify-start"
-            }`}
-          >
+        {messages.map((message, index) => {
+          // Analyze substrate influence for EOS assistant messages
+          const isLastAssistantMessage = 
+            message.role === "assistant" && 
+            index === messages.length - 1;
+          const influences = isEos && message.role === "assistant" && pad
+            ? analyzeSubstrateInfluence(
+                message.content,
+                pad,
+                rnt,
+                relationshipDepth,
+                breakthroughProbability
+              )
+            : [];
+
+          return (
             <div
-              className={`max-w-[80%] rounded-lg px-4 py-2 ${
-                message.role === "user"
-                  ? "bg-eos-surface-elevated text-foreground"
-                  : isEos
-                  ? "bg-accent/30 text-foreground"
-                  : "bg-muted text-foreground"
+              key={message.id}
+              className={`flex ${
+                message.role === "user" ? "justify-end" : "justify-start"
               }`}
             >
-              <p className="text-sm whitespace-pre-wrap">{message.content}</p>
-              <p className="text-xs text-muted-foreground mt-1">
-                {formatTime(message.timestamp)}
-              </p>
+              <div
+                className={`max-w-[80%] rounded-lg px-4 py-2 ${
+                  message.role === "user"
+                    ? "bg-eos-surface-elevated text-foreground"
+                    : isEos
+                    ? "bg-accent/30 text-foreground"
+                    : "bg-muted text-foreground"
+                }`}
+              >
+                <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {formatTime(message.timestamp)}
+                </p>
+                {/* Substrate influence markers for EOS responses */}
+                {isEos && message.role === "assistant" && influences.length > 0 && (
+                  <SubstrateResponseMarkers 
+                    influences={influences} 
+                    compact={!isLastAssistantMessage}
+                  />
+                )}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
         {isLoading && (
           <div className="flex justify-start">
             <div className={`rounded-lg ${isEos ? "bg-accent/30" : "bg-muted"}`}>
