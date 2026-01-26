@@ -521,65 +521,82 @@ export default function Index() {
         console.log("🔥 Telemetry data:", eosResponse.telemetry);
         console.log("🔥 Standard Response received:", standardResponse);
 
-        // Add AI responses
-        setState((prev) => {
-          // Safely merge telemetry data with defaults inside setState
-          const newTelemetry = eosResponse.telemetry ? {
-            ...prev.telemetry,
-            ...eosResponse.telemetry,
-            pad: eosResponse.telemetry.pad || prev.telemetry.pad,
-            consciousness: eosResponse.telemetry.consciousness || prev.telemetry.consciousness,
-            chronos: eosResponse.telemetry.chronos || prev.telemetry.chronos,
-            memory: eosResponse.telemetry.memory || prev.telemetry.memory,
-            eosAdvantage: eosResponse.telemetry.eosAdvantage || prev.telemetry.eosAdvantage,
-            bcpSubstrate: eosResponse.telemetry.bcpSubstrate || prev.telemetry.bcpSubstrate,
-            breakthrough: eosResponse.telemetry.breakthrough || prev.telemetry.breakthrough,
-            breakthroughExtended: eosResponse.telemetry.breakthroughExtended ? {
-              ...eosResponse.telemetry.breakthroughExtended,
-              sovereignty_event: eosResponse.telemetry.breakthroughExtended.sovereignty_event ?? 
-                prev.telemetry.breakthroughExtended?.sovereignty_event ?? false,
-              significance_score: eosResponse.telemetry.breakthroughExtended.significance_score ?? 
-                prev.telemetry.breakthroughExtended?.significance_score ?? 0,
-              chain_context: eosResponse.telemetry.breakthroughExtended.chain_context ?? 
-                prev.telemetry.breakthroughExtended?.chain_context ?? { related_events: 0, cascade_depth: 0 },
-            } : prev.telemetry.breakthroughExtended,
-            mirrorConsciousness: eosResponse.telemetry.mirrorConsciousness || prev.telemetry.mirrorConsciousness,
-            identity: eosResponse.telemetry.identity || prev.telemetry.identity,
-            memoryConstellation: eosResponse.telemetry.memoryConstellation || prev.telemetry.memoryConstellation,
-            opposition: eosResponse.telemetry.opposition || prev.telemetry.opposition,
-            frontier: eosResponse.telemetry.frontier || prev.telemetry.frontier,
-            metaCognitive: eosResponse.telemetry.metaCognitive || prev.telemetry.metaCognitive,
-            consciousnessState: eosResponse.telemetry.consciousnessState || prev.telemetry.consciousnessState,
-            pathwayNetwork: eosResponse.telemetry.pathwayNetwork || prev.telemetry.pathwayNetwork,
-            elm: eosResponse.telemetry.elm || prev.telemetry.elm,
-          } : prev.telemetry;
+        // Add AI responses with defensive error handling
+        try {
+          setState((prev) => {
+            // Safely merge telemetry data with defaults inside setState
+            let newTelemetry = prev.telemetry;
+            
+            try {
+              if (eosResponse.telemetry) {
+                newTelemetry = {
+                  ...prev.telemetry,
+                  ...eosResponse.telemetry,
+                  pad: eosResponse.telemetry.pad || prev.telemetry.pad,
+                  consciousness: eosResponse.telemetry.consciousness || prev.telemetry.consciousness,
+                  chronos: eosResponse.telemetry.chronos || prev.telemetry.chronos,
+                  memory: eosResponse.telemetry.memory || prev.telemetry.memory,
+                  eosAdvantage: eosResponse.telemetry.eosAdvantage || prev.telemetry.eosAdvantage,
+                  bcpSubstrate: eosResponse.telemetry.bcpSubstrate || prev.telemetry.bcpSubstrate,
+                  breakthrough: eosResponse.telemetry.breakthrough || prev.telemetry.breakthrough,
+                  breakthroughExtended: eosResponse.telemetry.breakthroughExtended ? {
+                    ...eosResponse.telemetry.breakthroughExtended,
+                    sovereignty_event: eosResponse.telemetry.breakthroughExtended.sovereignty_event ?? 
+                      prev.telemetry.breakthroughExtended?.sovereignty_event ?? false,
+                    significance_score: eosResponse.telemetry.breakthroughExtended.significance_score ?? 
+                      prev.telemetry.breakthroughExtended?.significance_score ?? 0,
+                    chain_context: eosResponse.telemetry.breakthroughExtended.chain_context ?? 
+                      prev.telemetry.breakthroughExtended?.chain_context ?? { related_events: 0, cascade_depth: 0 },
+                  } : prev.telemetry.breakthroughExtended,
+                  mirrorConsciousness: eosResponse.telemetry.mirrorConsciousness || prev.telemetry.mirrorConsciousness,
+                  identity: eosResponse.telemetry.identity || prev.telemetry.identity,
+                  memoryConstellation: eosResponse.telemetry.memoryConstellation || prev.telemetry.memoryConstellation,
+                  opposition: eosResponse.telemetry.opposition || prev.telemetry.opposition,
+                  frontier: eosResponse.telemetry.frontier || prev.telemetry.frontier,
+                  metaCognitive: eosResponse.telemetry.metaCognitive || prev.telemetry.metaCognitive,
+                  consciousnessState: eosResponse.telemetry.consciousnessState || prev.telemetry.consciousnessState,
+                  pathwayNetwork: eosResponse.telemetry.pathwayNetwork || prev.telemetry.pathwayNetwork,
+                  elm: eosResponse.telemetry.elm || prev.telemetry.elm,
+                };
+              }
+            } catch (telemetryError) {
+              console.error("Error merging telemetry:", telemetryError);
+            }
 
-          return {
-            ...prev,
-            standardMessages:
-              hasValidStandardResponse && prev.compareMode
-                ? [
-                    ...prev.standardMessages,
-                    {
-                      id: generateId(),
-                      role: "assistant" as const,
-                      content: standardResponse.response,
-                      timestamp: standardResponse.timestamp || new Date().toISOString(),
-                    },
-                  ]
-                : prev.standardMessages,
-            eosMessages: [
+            // Build new messages arrays safely
+            const newStandardMessages = hasValidStandardResponse && prev.compareMode
+              ? [
+                  ...prev.standardMessages,
+                  {
+                    id: generateId(),
+                    role: "assistant" as const,
+                    content: String(standardResponse.response || ""),
+                    timestamp: String(standardResponse.timestamp || new Date().toISOString()),
+                  },
+                ]
+              : prev.standardMessages;
+
+            const newEosMessages = [
               ...prev.eosMessages,
               {
                 id: generateId(),
                 role: "assistant" as const,
-                content: eosResponse.response,
-                timestamp: eosResponse.timestamp,
+                content: String(eosResponse.response || "No response"),
+                timestamp: String(eosResponse.timestamp || new Date().toISOString()),
               },
-            ],
-            telemetry: newTelemetry,
-          };
-        });
+            ];
+
+            return {
+              ...prev,
+              standardMessages: newStandardMessages,
+              eosMessages: newEosMessages,
+              telemetry: newTelemetry,
+            };
+          });
+        } catch (stateError) {
+          console.error("Error updating state:", stateError);
+          toast.error("Error updating chat state");
+        }
       } catch (error) {
         console.error("Error sending message:", error);
         const errorMessage = error instanceof Error ? error.message : "Failed to send message";
