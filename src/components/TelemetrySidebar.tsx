@@ -237,15 +237,15 @@ export function TelemetrySidebar({ telemetry, compareMode }: TelemetrySidebarPro
               <div className="flex justify-between mb-1">
                 <span className="text-sm text-muted-foreground">Relationship Depth</span>
                 <span className="text-sm font-mono text-foreground">
-                  {telemetry.consciousness.relationshipDepth.toFixed(2)}
+                  {(telemetry.consciousness?.relationshipDepth ?? 0).toFixed(2)}
                 </span>
               </div>
-              <ProgressBar value={telemetry.consciousness.relationshipDepth} />
+              <ProgressBar value={telemetry.consciousness?.relationshipDepth ?? 0} />
             </div>
             <div className="flex justify-between">
               <span className="text-sm text-muted-foreground">Total Interactions:</span>
               <span className="text-sm font-mono text-foreground">
-                {telemetry.consciousness.totalInteractions}
+                {telemetry.consciousness?.totalInteractions ?? 0}
               </span>
             </div>
           </div>
