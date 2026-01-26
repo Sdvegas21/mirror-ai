@@ -16,13 +16,21 @@ export interface ChatResponse {
 
 class EOSClient {
   private baseURL: string;
+  
+  // Headers to bypass ngrok's browser warning interstitial
+  private defaultHeaders: HeadersInit = {
+    'Content-Type': 'application/json',
+    'ngrok-skip-browser-warning': 'true',
+  };
 
   constructor() {
     this.baseURL = API_CONFIG.BASE_URL;
   }
 
   async healthCheck(): Promise<{ status: string; timestamp: string; eos_backend: string }> {
-    const response = await fetch(`${this.baseURL}${API_CONFIG.ENDPOINTS.HEALTH}`);
+    const response = await fetch(`${this.baseURL}${API_CONFIG.ENDPOINTS.HEALTH}`, {
+      headers: this.defaultHeaders,
+    });
     if (!response.ok) throw new Error('Backend health check failed');
     return response.json();
   }
@@ -33,7 +41,7 @@ class EOSClient {
     try {
       response = await fetch(`${this.baseURL}${API_CONFIG.ENDPOINTS.CHAT}`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: this.defaultHeaders,
         body: JSON.stringify(request),
       });
     } catch (networkError) {
@@ -56,13 +64,17 @@ class EOSClient {
   }
 
   async getTelemetry(userId: string): Promise<TelemetryState> {
-    const response = await fetch(`${this.baseURL}${API_CONFIG.ENDPOINTS.TELEMETRY}?user_id=${userId}`);
+    const response = await fetch(`${this.baseURL}${API_CONFIG.ENDPOINTS.TELEMETRY}?user_id=${userId}`, {
+      headers: this.defaultHeaders,
+    });
     if (!response.ok) throw new Error('Telemetry request failed');
     return response.json();
   }
 
   async getHistory(userId: string, limit: number = 50): Promise<{ success: boolean; user_id: string; eos_messages: Array<{ role: string; content: string; timestamp: string }>; standard_messages: Array<{ role: string; content: string; timestamp: string }>; total_count: number }> {
-    const response = await fetch(`${this.baseURL}${API_CONFIG.ENDPOINTS.HISTORY}?user_id=${userId}&limit=${limit}`);
+    const response = await fetch(`${this.baseURL}${API_CONFIG.ENDPOINTS.HISTORY}?user_id=${userId}&limit=${limit}`, {
+      headers: this.defaultHeaders,
+    });
     if (!response.ok) throw new Error('History request failed');
     return response.json();
   }
