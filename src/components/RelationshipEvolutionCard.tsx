@@ -120,14 +120,26 @@ function getTrustTrendInfo(trend: RelationshipEvolutionState["trustTrend"]): {
 
 export const RelationshipEvolutionCard = forwardRef<HTMLDivElement, RelationshipEvolutionCardProps>(
   function RelationshipEvolutionCard({ relationship }, ref) {
-    const phaseInfo = getPhaseInfo(relationship.currentPhase);
-    const attachmentInfo = getAttachmentInfo(relationship.attachmentStyle);
-    const trustTrendInfo = getTrustTrendInfo(relationship.trustTrend);
+    // Defensive defaults for partial backend data
+    const currentPhase = relationship?.currentPhase ?? "introduction";
+    const phaseProgress = relationship?.phaseProgress ?? 0;
+    const trustLevel = relationship?.trustLevel ?? 0;
+    const trustTrend = relationship?.trustTrend ?? "building";
+    const attachmentStyle = relationship?.attachmentStyle ?? "unknown";
+    const attachmentConfidence = relationship?.attachmentConfidence ?? 0;
+    const sharedExperienceCount = relationship?.sharedExperienceCount ?? 0;
+    const meaningfulMoments = relationship?.meaningfulMoments ?? [];
+    const coEvolutionScore = relationship?.coEvolutionScore ?? 0;
+    const mutualAdaptation = relationship?.mutualAdaptation ?? { aiToUser: 0, userToAi: 0 };
+    
+    const phaseInfo = getPhaseInfo(currentPhase);
+    const attachmentInfo = getAttachmentInfo(attachmentStyle);
+    const trustTrendInfo = getTrustTrendInfo(trustTrend);
 
     // Calculate total phase progress (0-5 scale normalized)
     const phases = ["introduction", "exploration", "deepening", "integration", "co-evolution"];
-    const phaseIndex = phases.indexOf(relationship.currentPhase);
-    const totalProgress = (phaseIndex + relationship.phaseProgress) / 5;
+    const phaseIndex = phases.indexOf(currentPhase);
+    const totalProgress = (phaseIndex + phaseProgress) / 5;
 
     return (
       <div ref={ref}>
@@ -161,13 +173,13 @@ export const RelationshipEvolutionCard = forwardRef<HTMLDivElement, Relationship
                 <div className="flex justify-between text-xs">
                   <span className="text-muted-foreground">Phase Progress</span>
                   <span className="font-mono text-foreground">
-                    {(relationship.phaseProgress * 100).toFixed(0)}%
+                    {(phaseProgress * 100).toFixed(0)}%
                   </span>
                 </div>
                 <div className="h-1.5 bg-muted rounded-full overflow-hidden">
                   <motion.div
                     initial={{ width: 0 }}
-                    animate={{ width: `${relationship.phaseProgress * 100}%` }}
+                    animate={{ width: `${phaseProgress * 100}%` }}
                     className="h-full bg-primary rounded-full"
                   />
                 </div>
@@ -221,7 +233,7 @@ export const RelationshipEvolutionCard = forwardRef<HTMLDivElement, Relationship
                 </div>
                 <div className="text-center">
                   <span className="text-2xl font-bold text-foreground">
-                    {(relationship.trustLevel * 100).toFixed(0)}%
+                    {(trustLevel * 100).toFixed(0)}%
                   </span>
                 </div>
               </div>
@@ -233,7 +245,7 @@ export const RelationshipEvolutionCard = forwardRef<HTMLDivElement, Relationship
                   {attachmentInfo.label}
                 </div>
                 <div className="text-xs text-muted-foreground text-center">
-                  {(relationship.attachmentConfidence * 100).toFixed(0)}% conf.
+                  {(attachmentConfidence * 100).toFixed(0)}% conf.
                 </div>
               </div>
             </div>
@@ -241,7 +253,7 @@ export const RelationshipEvolutionCard = forwardRef<HTMLDivElement, Relationship
             {/* Co-Evolution Metrics */}
             <div className="space-y-2 pt-2 border-t border-border">
               <span className="text-xs font-semibold text-primary uppercase tracking-wide">
-                Co-Evolution Score: {(relationship.coEvolutionScore * 100).toFixed(0)}%
+                Co-Evolution Score: {(coEvolutionScore * 100).toFixed(0)}%
               </span>
               
               <div className="space-y-2">
@@ -250,12 +262,12 @@ export const RelationshipEvolutionCard = forwardRef<HTMLDivElement, Relationship
                   <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
                     <motion.div
                       initial={{ width: 0 }}
-                      animate={{ width: `${relationship.mutualAdaptation.aiToUser * 100}%` }}
+                      animate={{ width: `${mutualAdaptation.aiToUser * 100}%` }}
                       className="h-full bg-primary rounded-full"
                     />
                   </div>
                   <span className="text-xs font-mono text-foreground w-8 text-right">
-                    {(relationship.mutualAdaptation.aiToUser * 100).toFixed(0)}%
+                    {(mutualAdaptation.aiToUser * 100).toFixed(0)}%
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
@@ -263,30 +275,30 @@ export const RelationshipEvolutionCard = forwardRef<HTMLDivElement, Relationship
                   <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
                     <motion.div
                       initial={{ width: 0 }}
-                      animate={{ width: `${relationship.mutualAdaptation.userToAi * 100}%` }}
+                      animate={{ width: `${mutualAdaptation.userToAi * 100}%` }}
                       className="h-full bg-accent rounded-full"
                     />
                   </div>
                   <span className="text-xs font-mono text-foreground w-8 text-right">
-                    {(relationship.mutualAdaptation.userToAi * 100).toFixed(0)}%
+                    {(mutualAdaptation.userToAi * 100).toFixed(0)}%
                   </span>
                 </div>
               </div>
             </div>
 
             {/* Meaningful Moments */}
-            {relationship.meaningfulMoments.length > 0 && (
+            {meaningfulMoments.length > 0 && (
               <div className="space-y-2 pt-2 border-t border-border">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
                     Meaningful Moments
                   </span>
                   <span className="text-xs text-muted-foreground">
-                    {relationship.sharedExperienceCount} total
+                    {sharedExperienceCount} total
                   </span>
                 </div>
                 <div className="space-y-1 max-h-20 overflow-y-auto scrollbar-thin">
-                  {relationship.meaningfulMoments.slice(-2).map((moment, idx) => (
+                  {meaningfulMoments.slice(-2).map((moment, idx) => (
                     <motion.div
                       key={idx}
                       initial={{ opacity: 0 }}

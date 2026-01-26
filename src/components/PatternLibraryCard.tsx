@@ -55,12 +55,20 @@ export const PatternLibraryCard = forwardRef<HTMLDivElement, PatternLibraryCardP
   function PatternLibraryCard({ patternLibrary }, ref) {
     const [showAll, setShowAll] = useState(false);
     
-    const topPatterns = patternLibrary.patterns
+    // Defensive defaults for partial backend data
+    const patterns = patternLibrary?.patterns ?? [];
+    const networkCoherence = patternLibrary?.networkCoherence ?? 0;
+    const totalPatterns = patternLibrary?.totalPatterns ?? 0;
+    const dominantCluster = patternLibrary?.dominantCluster ?? "none";
+    const transferabilityScore = patternLibrary?.transferabilityScore ?? 0;
+    const recentEvolutions = patternLibrary?.recentEvolutions ?? [];
+    
+    const topPatterns = [...patterns]
       .sort((a, b) => b.resonanceScore - a.resonanceScore)
       .slice(0, showAll ? 10 : 5);
 
-    const coherencePercent = (patternLibrary.networkCoherence * 100).toFixed(0);
-    const isHighCoherence = patternLibrary.networkCoherence > 0.7;
+    const coherencePercent = (networkCoherence * 100).toFixed(0);
+    const isHighCoherence = networkCoherence > 0.7;
 
     return (
       <div ref={ref}>

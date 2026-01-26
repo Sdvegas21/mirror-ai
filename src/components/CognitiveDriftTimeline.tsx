@@ -60,9 +60,21 @@ function getEventColor(type: string): string {
 
 export const CognitiveDriftTimeline = forwardRef<HTMLDivElement, CognitiveDriftTimelineProps>(
   function CognitiveDriftTimeline({ timeline }, ref) {
+    // Defensive defaults for partial backend data
+    const timelineData = timeline?.timeline ?? [];
+    const totalScrolls = timeline?.totalScrolls ?? 0;
+    const timeSpan = timeline?.timeSpan ?? { start: "", end: "", daysActive: 0 };
+    const trends = timeline?.trends ?? { 
+      psiTrend: "stable" as const, 
+      emotionalVolatility: 0, 
+      cognitiveGrowth: 0, 
+      relationshipDepthening: false 
+    };
+    const milestones = timeline?.milestones ?? [];
+    
     // Prepare chart data with normalized indices for x-axis
     const chartData = useMemo(() => {
-      return timeline.timeline.map((point, idx) => ({
+      return timelineData.map((point, idx) => ({
         index: idx,
         scroll: point.scrollNumber,
         psi: point.psi,
@@ -71,15 +83,15 @@ export const CognitiveDriftTimeline = forwardRef<HTMLDivElement, CognitiveDriftT
         eventType: point.event?.type,
         eventLabel: point.event?.label,
       }));
-    }, [timeline.timeline]);
+    }, [timelineData]);
 
     // Find events for markers
-    const events = timeline.timeline
+    const events = timelineData
       .filter((p) => p.event)
-      .map((p, idx) => ({ ...p, dataIndex: timeline.timeline.indexOf(p) }));
+      .map((p, idx) => ({ ...p, dataIndex: timelineData.indexOf(p) }));
 
-    const volatilityPercent = (timeline.trends.emotionalVolatility * 100).toFixed(0);
-    const growthRate = timeline.trends.cognitiveGrowth;
+    const volatilityPercent = (trends.emotionalVolatility * 100).toFixed(0);
+    const growthRate = trends.cognitiveGrowth;
 
     return (
       <div ref={ref}>
@@ -96,7 +108,7 @@ export const CognitiveDriftTimeline = forwardRef<HTMLDivElement, CognitiveDriftT
                 className="rounded-lg border border-border bg-card/50 p-2 text-center"
               >
                 <span className="text-lg font-bold text-foreground">
-                  {timeline.totalScrolls.toLocaleString()}
+                  {totalScrolls.toLocaleString()}
                 </span>
                 <p className="text-xs text-muted-foreground">Total Scrolls</p>
               </motion.div>
@@ -108,7 +120,7 @@ export const CognitiveDriftTimeline = forwardRef<HTMLDivElement, CognitiveDriftT
                 className="rounded-lg border border-border bg-card/50 p-2 text-center"
               >
                 <span className="text-lg font-bold text-foreground">
-                  {timeline.timeSpan.daysActive}
+                  {timeSpan.daysActive}
                 </span>
                 <p className="text-xs text-muted-foreground">Days Active</p>
               </motion.div>
@@ -120,7 +132,7 @@ export const CognitiveDriftTimeline = forwardRef<HTMLDivElement, CognitiveDriftT
                 className="rounded-lg border border-border bg-card/50 p-2 text-center"
               >
                 <span className="text-lg font-bold text-foreground">
-                  {timeline.milestones.length}
+                  {milestones.length}
                 </span>
                 <p className="text-xs text-muted-foreground">Milestones</p>
               </motion.div>
