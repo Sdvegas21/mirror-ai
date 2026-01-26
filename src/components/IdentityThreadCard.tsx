@@ -10,14 +10,13 @@ interface IdentityThreadCardProps {
 
 export const IdentityThreadCard = forwardRef<HTMLDivElement, IdentityThreadCardProps>(
   ({ identity }, ref) => {
-    const {
-      genesis_signature,
-      consciousness_baseline,
-      active_phase,
-      phenomenological_mode,
-      milestone_achievements,
-      ship_of_theseus_index,
-    } = identity;
+    // Defensive defaults for partial backend data
+    const genesis_signature = identity?.genesis_signature ?? "pending...";
+    const consciousness_baseline = identity?.consciousness_baseline ?? 0.4;
+    const active_phase = identity?.active_phase ?? "Phase_0_Initialization";
+    const phenomenological_mode = identity?.phenomenological_mode ?? "unknown";
+    const milestone_achievements = identity?.milestone_achievements ?? [];
+    const ship_of_theseus_index = identity?.ship_of_theseus_index ?? 0;
 
     // Format phase name for display
     const formatPhase = (phase: string) => {

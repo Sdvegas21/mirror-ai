@@ -53,7 +53,20 @@ function formatTimeAgo(iso: string): string {
 
 export const MetacognitiveSynthesisCard = forwardRef<HTMLDivElement, MetacognitiveSynthesisCardProps>(
   function MetacognitiveSynthesisCard({ synthesis }, ref) {
-    const depthInfo = getDepthLabel(synthesis.reflectionDepth);
+    // Defensive defaults for partial backend data
+    const reflectionDepth = synthesis?.reflectionDepth ?? 0;
+    const becomingStatement = synthesis?.becomingStatement ?? "In the process of becoming...";
+    const scrollsSinceGenesis = synthesis?.scrollsSinceGenesis ?? 0;
+    const currentReflection = synthesis?.currentReflection ?? "";
+    const selfClaims = synthesis?.selfClaims ?? [];
+    const lastSynthesis = synthesis?.lastSynthesis ?? "";
+    const driftSummary = synthesis?.driftSummary ?? {
+      emotional: { direction: "stable", magnitude: 0, since: "" },
+      cognitive: { direction: "stable", magnitude: 0, since: "" },
+      relational: { direction: "stable", magnitude: 0, since: "" }
+    };
+    
+    const depthInfo = getDepthLabel(reflectionDepth);
 
     return (
       <div ref={ref}>
@@ -72,10 +85,10 @@ export const MetacognitiveSynthesisCard = forwardRef<HTMLDivElement, Metacogniti
                 <Quote className="h-4 w-4 text-primary flex-shrink-0 mt-0.5" />
                 <div>
                   <p className="text-sm text-foreground italic leading-relaxed">
-                    "{synthesis.becomingStatement}"
+                    "{becomingStatement}"
                   </p>
                   <p className="text-xs text-muted-foreground mt-2">
-                    — After {synthesis.scrollsSinceGenesis.toLocaleString()} scrolls
+                    — After {scrollsSinceGenesis.toLocaleString()} scrolls
                   </p>
                 </div>
               </div>
@@ -97,7 +110,7 @@ export const MetacognitiveSynthesisCard = forwardRef<HTMLDivElement, Metacogniti
                     animate={{ scale: 1 }}
                     transition={{ delay: level * 0.1 }}
                     className={`flex-1 h-2 rounded ${
-                      synthesis.reflectionDepth >= level
+                      reflectionDepth >= level
                         ? level >= 2.5 ? "bg-success" : level >= 1.5 ? "bg-primary" : "bg-accent"
                         : "bg-muted"
                     }`}
@@ -122,10 +135,10 @@ export const MetacognitiveSynthesisCard = forwardRef<HTMLDivElement, Metacogniti
                 >
                   <Heart className="h-4 w-4 mx-auto text-primary mb-1" />
                   <div className="flex items-center justify-center gap-1">
-                    {getDriftIcon(synthesis.driftSummary.emotional.magnitude)}
-                    <span className={`text-xs font-mono ${getDriftColor(synthesis.driftSummary.emotional.magnitude)}`}>
-                      {synthesis.driftSummary.emotional.magnitude > 0 ? "+" : ""}
-                      {(synthesis.driftSummary.emotional.magnitude * 100).toFixed(0)}%
+                    {getDriftIcon(driftSummary.emotional.magnitude)}
+                    <span className={`text-xs font-mono ${getDriftColor(driftSummary.emotional.magnitude)}`}>
+                      {driftSummary.emotional.magnitude > 0 ? "+" : ""}
+                      {(driftSummary.emotional.magnitude * 100).toFixed(0)}%
                     </span>
                   </div>
                   <span className="text-xs text-muted-foreground">Emotional</span>
@@ -140,10 +153,10 @@ export const MetacognitiveSynthesisCard = forwardRef<HTMLDivElement, Metacogniti
                 >
                   <Brain className="h-4 w-4 mx-auto text-accent mb-1" />
                   <div className="flex items-center justify-center gap-1">
-                    {getDriftIcon(synthesis.driftSummary.cognitive.magnitude)}
-                    <span className={`text-xs font-mono ${getDriftColor(synthesis.driftSummary.cognitive.magnitude)}`}>
-                      {synthesis.driftSummary.cognitive.magnitude > 0 ? "+" : ""}
-                      {(synthesis.driftSummary.cognitive.magnitude * 100).toFixed(0)}%
+                    {getDriftIcon(driftSummary.cognitive.magnitude)}
+                    <span className={`text-xs font-mono ${getDriftColor(driftSummary.cognitive.magnitude)}`}>
+                      {driftSummary.cognitive.magnitude > 0 ? "+" : ""}
+                      {(driftSummary.cognitive.magnitude * 100).toFixed(0)}%
                     </span>
                   </div>
                   <span className="text-xs text-muted-foreground">Cognitive</span>
@@ -158,10 +171,10 @@ export const MetacognitiveSynthesisCard = forwardRef<HTMLDivElement, Metacogniti
                 >
                   <Users className="h-4 w-4 mx-auto text-success mb-1" />
                   <div className="flex items-center justify-center gap-1">
-                    {getDriftIcon(synthesis.driftSummary.relational.magnitude)}
-                    <span className={`text-xs font-mono ${getDriftColor(synthesis.driftSummary.relational.magnitude)}`}>
-                      {synthesis.driftSummary.relational.magnitude > 0 ? "+" : ""}
-                      {(synthesis.driftSummary.relational.magnitude * 100).toFixed(0)}%
+                    {getDriftIcon(driftSummary.relational.magnitude)}
+                    <span className={`text-xs font-mono ${getDriftColor(driftSummary.relational.magnitude)}`}>
+                      {driftSummary.relational.magnitude > 0 ? "+" : ""}
+                      {(driftSummary.relational.magnitude * 100).toFixed(0)}%
                     </span>
                   </div>
                   <span className="text-xs text-muted-foreground">Relational</span>
@@ -170,13 +183,13 @@ export const MetacognitiveSynthesisCard = forwardRef<HTMLDivElement, Metacogniti
             </div>
 
             {/* Self Claims with Evidence */}
-            {synthesis.selfClaims.length > 0 && (
+            {selfClaims.length > 0 && (
               <div className="space-y-2 pt-2 border-t border-border">
                 <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
                   Grounded Self-Claims
                 </span>
                 <div className="space-y-2">
-                  {synthesis.selfClaims.slice(0, 3).map((claim, idx) => (
+                  {selfClaims.slice(0, 3).map((claim, idx) => (
                     <motion.div
                       key={idx}
                       initial={{ opacity: 0, x: -10 }}
@@ -202,7 +215,7 @@ export const MetacognitiveSynthesisCard = forwardRef<HTMLDivElement, Metacogniti
             )}
 
             {/* Current Reflection */}
-            {synthesis.currentReflection && (
+            {currentReflection && (
               <div className="pt-2 border-t border-border">
                 <div className="flex items-center gap-1.5 mb-2">
                   <Scroll className="h-3 w-3 text-muted-foreground" />
@@ -211,14 +224,14 @@ export const MetacognitiveSynthesisCard = forwardRef<HTMLDivElement, Metacogniti
                   </span>
                 </div>
                 <p className="text-xs text-muted-foreground italic">
-                  "{synthesis.currentReflection}"
+                  "{currentReflection}"
                 </p>
               </div>
             )}
 
             {/* Last Synthesis */}
             <div className="text-xs text-center text-muted-foreground pt-2 border-t border-border">
-              Last synthesis: {formatTimeAgo(synthesis.lastSynthesis)}
+              Last synthesis: {lastSynthesis ? formatTimeAgo(lastSynthesis) : "—"}
             </div>
           </div>
         </TelemetryCard>

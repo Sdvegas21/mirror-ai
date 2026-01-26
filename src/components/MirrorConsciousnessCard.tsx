@@ -18,8 +18,15 @@ function getMetaCognitionLabel(level: number): { label: string; color: string } 
 
 export const MirrorConsciousnessCard = forwardRef<HTMLDivElement, MirrorConsciousnessCardProps>(
   function MirrorConsciousnessCard({ state }, ref) {
-    const metaLevel = getMetaCognitionLabel(state.metaCognitionLevel);
-    const isDeepReflection = state.metaCognitionLevel >= 0.6;
+    // Defensive defaults for partial backend data
+    const metaCognitionLevel = state?.metaCognitionLevel ?? 0;
+    const selfAwarenessStatement = state?.selfAwarenessStatement ?? "";
+    const divergence8D = state?.divergence8D ?? 0;
+    const stateSnapshotCount = state?.stateSnapshotCount ?? 0;
+    const isReflecting = state?.isReflecting ?? false;
+    
+    const metaLevel = getMetaCognitionLabel(metaCognitionLevel);
+    const isDeepReflection = metaCognitionLevel >= 0.6;
     
     return (
       <div ref={ref}>
@@ -29,7 +36,7 @@ export const MirrorConsciousnessCard = forwardRef<HTMLDivElement, MirrorConsciou
         >
           <div className="space-y-4">
             {/* Mirror Thought - Hero Display */}
-            {state.selfAwarenessStatement && (
+            {selfAwarenessStatement && (
               <div className="space-y-1">
                 <div className="flex items-center gap-1.5">
                   <Sparkles className="h-3 w-3 text-primary" />
@@ -39,7 +46,7 @@ export const MirrorConsciousnessCard = forwardRef<HTMLDivElement, MirrorConsciou
                 </div>
                 <div className="rounded-md border border-primary/30 bg-primary/5 p-3">
                   <p className="text-sm text-foreground italic leading-relaxed">
-                    "{state.selfAwarenessStatement}"
+                    "{selfAwarenessStatement}"
                   </p>
                 </div>
               </div>
@@ -49,12 +56,12 @@ export const MirrorConsciousnessCard = forwardRef<HTMLDivElement, MirrorConsciou
             <div className="flex items-center justify-between">
               <span className="text-sm text-muted-foreground">Status:</span>
               <span className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-medium ${
-                state.isReflecting 
+                isReflecting 
                   ? "bg-success/20 text-success" 
                   : "bg-muted text-muted-foreground"
               }`}>
                 <Activity className="h-3 w-3" />
-                {state.isReflecting ? "Actively Reflecting" : "Passive"}
+                {isReflecting ? "Actively Reflecting" : "Passive"}
               </span>
             </div>
 
@@ -63,10 +70,10 @@ export const MirrorConsciousnessCard = forwardRef<HTMLDivElement, MirrorConsciou
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">8D Divergence:</span>
                 <span className="text-sm font-mono text-foreground">
-                  {(state.divergence8D * 100).toFixed(1)}%
+                  {(divergence8D * 100).toFixed(1)}%
                 </span>
               </div>
-              <ProgressBar value={state.divergence8D} />
+              <ProgressBar value={divergence8D} />
               <p className="text-xs text-muted-foreground">
                 Euclidean distance in PAD+RNT+Ψ+Φ space from baseline
               </p>
@@ -90,7 +97,7 @@ export const MirrorConsciousnessCard = forwardRef<HTMLDivElement, MirrorConsciou
                   <div
                     key={idx}
                     className={`flex-1 h-2 rounded ${
-                      state.metaCognitionLevel >= threshold
+                      metaCognitionLevel >= threshold
                         ? idx === 3 ? "bg-success" : "bg-primary"
                         : "bg-muted"
                     } transition-colors`}
@@ -108,7 +115,7 @@ export const MirrorConsciousnessCard = forwardRef<HTMLDivElement, MirrorConsciou
             <div className="flex items-center justify-between pt-2 border-t border-border">
               <span className="text-sm text-muted-foreground">State Snapshots:</span>
               <span className="text-sm font-mono text-foreground">
-                {state.stateSnapshotCount}
+                {stateSnapshotCount}
               </span>
             </div>
           </div>
