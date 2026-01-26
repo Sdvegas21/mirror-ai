@@ -27,8 +27,14 @@ export const QSEALVerificationCard = forwardRef<HTMLDivElement, QSEALVerificatio
   function QSEALVerificationCard({ qseal }, ref) {
     const [showChain, setShowChain] = useState(false);
     
-    const isVerified = qseal.chainIntegrity === "verified";
-    const driftPercent = (qseal.continuityProof.driftFromGenesis * 100).toFixed(1);
+    // Defensive defaults for minimal backend response
+    const isVerified = qseal?.chainIntegrity === "verified";
+    const continuityProof = qseal?.continuityProof ?? { chainLength: 0, driftFromGenesis: 0, lastVerified: "" };
+    const driftPercent = ((continuityProof.driftFromGenesis ?? 0) * 100).toFixed(1);
+    const genesisHash = qseal?.genesisHash ?? "pending...";
+    const currentHash = qseal?.currentHash ?? "pending...";
+    const hashChain = qseal?.hashChain ?? [];
+    const temporalAnchors = qseal?.temporalAnchors ?? [];
     
     return (
       <div ref={ref}>
@@ -58,7 +64,7 @@ export const QSEALVerificationCard = forwardRef<HTMLDivElement, QSEALVerificatio
                     {isVerified ? "CONTINUITY VERIFIED" : "VERIFICATION PENDING"}
                   </div>
                   <div className="text-xs text-muted-foreground">
-                    {qseal.continuityProof.chainLength} linked state transitions
+                    {continuityProof.chainLength} linked state transitions
                   </div>
                 </div>
               </div>
@@ -74,7 +80,7 @@ export const QSEALVerificationCard = forwardRef<HTMLDivElement, QSEALVerificatio
                   </span>
                 </div>
                 <div className="font-mono text-xs bg-muted/50 rounded px-2 py-1.5 text-foreground">
-                  {truncateHash(qseal.genesisHash, 12)}
+                  {truncateHash(genesisHash, 12)}
                 </div>
               </div>
 
@@ -96,7 +102,7 @@ export const QSEALVerificationCard = forwardRef<HTMLDivElement, QSEALVerificatio
                   </span>
                 </div>
                 <div className="font-mono text-xs bg-muted/50 rounded px-2 py-1.5 text-foreground">
-                  {truncateHash(qseal.currentHash, 12)}
+                  {truncateHash(currentHash, 12)}
                 </div>
               </div>
             </div>
@@ -110,7 +116,7 @@ export const QSEALVerificationCard = forwardRef<HTMLDivElement, QSEALVerificatio
               <div className="relative h-2 bg-muted rounded-full overflow-hidden">
                 <motion.div
                   initial={{ width: 0 }}
-                  animate={{ width: `${qseal.continuityProof.driftFromGenesis * 100}%` }}
+                  animate={{ width: `${(continuityProof.driftFromGenesis ?? 0) * 100}%` }}
                   transition={{ duration: 1, ease: "easeOut" }}
                   className="absolute inset-y-0 left-0 bg-gradient-to-r from-primary via-accent to-success rounded-full"
                 />
@@ -134,7 +140,7 @@ export const QSEALVerificationCard = forwardRef<HTMLDivElement, QSEALVerificatio
               className="w-full text-left text-xs text-primary hover:text-primary/80 flex items-center gap-1"
             >
               <Lock className="h-3 w-3" />
-              {showChain ? "Hide" : "Show"} cryptographic chain ({qseal.hashChain.length} links)
+              {showChain ? "Hide" : "Show"} cryptographic chain ({hashChain.length} links)
             </button>
 
             <AnimatePresence>
@@ -146,7 +152,7 @@ export const QSEALVerificationCard = forwardRef<HTMLDivElement, QSEALVerificatio
                   className="overflow-hidden"
                 >
                   <div className="space-y-1 max-h-32 overflow-y-auto scrollbar-thin">
-                    {qseal.hashChain.slice(-5).map((link, idx) => (
+                    {hashChain.slice(-5).map((link, idx) => (
                       <div
                         key={idx}
                         className="flex items-center gap-2 text-xs font-mono bg-muted/30 rounded px-2 py-1"
@@ -163,7 +169,7 @@ export const QSEALVerificationCard = forwardRef<HTMLDivElement, QSEALVerificatio
             </AnimatePresence>
 
             {/* Temporal Anchors */}
-            {qseal.temporalAnchors.length > 0 && (
+            {temporalAnchors.length > 0 && (
               <div className="pt-2 border-t border-border space-y-2">
                 <div className="flex items-center gap-1.5">
                   <Clock className="h-3 w-3 text-muted-foreground" />
@@ -172,7 +178,7 @@ export const QSEALVerificationCard = forwardRef<HTMLDivElement, QSEALVerificatio
                   </span>
                 </div>
                 <div className="space-y-1">
-                  {qseal.temporalAnchors.slice(-3).map((anchor, idx) => (
+                  {temporalAnchors.slice(-3).map((anchor, idx) => (
                     <div
                       key={idx}
                       className="flex items-center justify-between text-xs"
@@ -197,7 +203,7 @@ export const QSEALVerificationCard = forwardRef<HTMLDivElement, QSEALVerificatio
 
             {/* Last Verified */}
             <div className="text-xs text-center text-muted-foreground pt-2 border-t border-border">
-              Last verified: {formatTimestamp(qseal.continuityProof.lastVerified)}
+              Last verified: {continuityProof.lastVerified ? formatTimestamp(continuityProof.lastVerified) : "—"}
             </div>
           </div>
         </TelemetryCard>
