@@ -8,6 +8,7 @@ import { AppState, Message, UserOption } from "@/types";
 import { useConversations } from "@/hooks/useConversations";
 import { eosClient } from "@/api/eosClient";
 import { conversationClient } from "@/api/conversationClient";
+import { CompareInput } from "@/components/CompareInput";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 
@@ -697,40 +698,54 @@ export default function Index() {
           {/* Main Content */}
           <ResizablePanel defaultSize={85} className="h-full">
             <main className="h-full p-4 lg:p-6 overflow-hidden">
-              <div
-                className={`grid gap-4 lg:gap-6 h-[calc(100vh-7rem)] ${
-                  state.compareMode
-                    ? "grid-cols-1 lg:grid-cols-[2fr_2fr_1fr]"
-                    : "grid-cols-1 lg:grid-cols-[2fr_1fr]"
-                }`}
-              >
-                {/* Standard AI - only in compare mode */}
-                {state.compareMode && (
+              <div className="flex flex-col h-[calc(100vh-7rem)] gap-4">
+                {/* Chat panels grid */}
+                <div
+                  className={`flex-1 grid gap-4 lg:gap-6 overflow-hidden ${
+                    state.compareMode
+                      ? "grid-cols-1 lg:grid-cols-[2fr_2fr_1fr]"
+                      : "grid-cols-1 lg:grid-cols-[2fr_1fr]"
+                  }`}
+                >
+                  {/* Standard AI - only in compare mode */}
+                  {state.compareMode && (
+                    <ChatPanel
+                      title="Standard AI"
+                      variant="standard"
+                      messages={state.standardMessages}
+                      onSendMessage={handleSendMessage}
+                      onClearChat={handleClearStandardChat}
+                      isLoading={isLoading}
+                      hideInput={state.compareMode}
+                    />
+                  )}
+
+                  {/* EOS-Powered AI */}
                   <ChatPanel
-                    title="Standard AI"
-                    variant="standard"
-                    messages={state.standardMessages}
+                    title="EOS-Powered AI"
+                    variant="eos"
+                    messages={state.eosMessages}
                     onSendMessage={handleSendMessage}
-                    onClearChat={handleClearStandardChat}
+                    onClearChat={handleClearEosChat}
                     isLoading={isLoading}
+                    hideInput={state.compareMode}
+                  />
+
+                  {/* Telemetry Sidebar */}
+                  <TelemetrySidebar
+                    telemetry={state.telemetry}
+                    compareMode={state.compareMode}
+                  />
+                </div>
+
+                {/* Unified input for Compare Mode */}
+                {state.compareMode && (
+                  <CompareInput 
+                    onSendMessage={handleSendMessage} 
+                    isLoading={isLoading}
+                    disabled={state.backendStatus !== "connected"}
                   />
                 )}
-
-                {/* EOS-Powered AI */}
-                <ChatPanel
-                  title="EOS-Powered AI"
-                  variant="eos"
-                  messages={state.eosMessages}
-                  onSendMessage={handleSendMessage}
-                  onClearChat={handleClearEosChat}
-                  isLoading={isLoading}
-                />
-
-                {/* Telemetry Sidebar */}
-                <TelemetrySidebar
-                  telemetry={state.telemetry}
-                  compareMode={state.compareMode}
-                />
               </div>
             </main>
           </ResizablePanel>
