@@ -238,6 +238,9 @@ export function useConsciousnessStream(options: UseConsciousnessStreamOptions = 
       reconnectionAttempts: 3, // Reduced for faster fallback to demo
       reconnectionDelay: 1000,
       timeout: 5000, // 5 second timeout
+      extraHeaders: {
+        'ngrok-skip-browser-warning': 'true', // Bypass ngrok interstitial
+      },
     });
 
     socketRef.current = socket;
