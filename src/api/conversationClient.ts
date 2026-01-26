@@ -14,6 +14,12 @@ import {
  */
 class ConversationClient {
   private baseURL: string;
+  
+  // Headers to bypass ngrok's browser warning interstitial
+  private defaultHeaders: HeadersInit = {
+    'Content-Type': 'application/json',
+    'ngrok-skip-browser-warning': 'true',
+  };
 
   constructor() {
     this.baseURL = API_CONFIG.BASE_URL;
@@ -26,7 +32,8 @@ class ConversationClient {
   async listConversations(userId: string, mode: 'standard' | 'eos'): Promise<Conversation[]> {
     try {
       const response = await fetch(
-        `${this.baseURL}/conversations?user_id=${userId}&mode=${mode}`
+        `${this.baseURL}/conversations?user_id=${userId}&mode=${mode}`,
+        { headers: this.defaultHeaders }
       );
       
       if (!response.ok) {
@@ -50,7 +57,7 @@ class ConversationClient {
     try {
       const response = await fetch(`${this.baseURL}/conversations`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: this.defaultHeaders,
         body: JSON.stringify({
           user_id: userId,
           mode,
@@ -78,7 +85,8 @@ class ConversationClient {
   async getConversationMessages(conversationId: string): Promise<ConversationMessagesResponse | null> {
     try {
       const response = await fetch(
-        `${this.baseURL}/conversations/${conversationId}/messages`
+        `${this.baseURL}/conversations/${conversationId}/messages`,
+        { headers: this.defaultHeaders }
       );
       
       if (!response.ok) {
@@ -101,6 +109,7 @@ class ConversationClient {
     try {
       const response = await fetch(`${this.baseURL}/conversations/${conversationId}`, {
         method: 'DELETE',
+        headers: this.defaultHeaders,
       });
       
       return response.ok;
@@ -118,7 +127,7 @@ class ConversationClient {
     try {
       const response = await fetch(`${this.baseURL}/conversations/${conversationId}`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: this.defaultHeaders,
         body: JSON.stringify({ title }),
       });
       
