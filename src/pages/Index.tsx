@@ -1,9 +1,10 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { HeaderBar } from "@/components/HeaderBar";
 import { ChatPanel } from "@/components/ChatPanel";
 import { TelemetrySidebar } from "@/components/TelemetrySidebar";
 import { ConversationSidebar } from "@/components/ConversationSidebar";
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
+import type { ImperativePanelHandle } from "react-resizable-panels";
 import { AppState, Message, UserOption } from "@/types";
 import { useConversations } from "@/hooks/useConversations";
 import { eosClient } from "@/api/eosClient";
@@ -226,6 +227,22 @@ export default function Index() {
   const [state, setState] = useState<AppState>(initialState);
   const [isLoading, setIsLoading] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const sidebarPanelRef = useRef<ImperativePanelHandle>(null);
+
+  // Handle sidebar collapse/expand with panel resize
+  const handleToggleSidebar = useCallback(() => {
+    const panel = sidebarPanelRef.current;
+    if (panel) {
+      if (sidebarCollapsed) {
+        // Expand to 15%
+        panel.resize(15);
+      } else {
+        // Collapse to 4%
+        panel.resize(4);
+      }
+    }
+    setSidebarCollapsed(!sidebarCollapsed);
+  }, [sidebarCollapsed]);
 
   // Conversation management hook
   const conversations = useConversations({
@@ -700,10 +717,13 @@ export default function Index() {
         <ResizablePanelGroup direction="horizontal" className="h-full">
           {/* Resizable Conversation Sidebar */}
           <ResizablePanel 
+            ref={sidebarPanelRef}
             defaultSize={15} 
-            minSize={sidebarCollapsed ? 3 : 10} 
+            minSize={4} 
             maxSize={30}
             className="h-full"
+            collapsible
+            collapsedSize={4}
           >
             <ConversationSidebar
               standardConversations={conversations.standardConversations}
@@ -719,7 +739,7 @@ export default function Index() {
               isLoading={conversations.isLoading}
               compareMode={state.compareMode}
               isCollapsed={sidebarCollapsed}
-              onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
+              onToggleCollapse={handleToggleSidebar}
             />
           </ResizablePanel>
 
