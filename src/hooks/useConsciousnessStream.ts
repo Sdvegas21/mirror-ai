@@ -82,26 +82,58 @@ export function useConsciousnessStream(options: UseConsciousnessStreamOptions = 
   const socketRef = useRef<Socket | null>(null);
   const animationRef = useRef<number | null>(null);
 
-  // Smooth Ψ animation
+  // Smooth Ψ animation - only runs when there's a difference to animate
   const animatePsi = useCallback(() => {
     setStreamingState((prev) => {
       const diff = prev.targetPsi - prev.currentPsi;
+      // If already converged, don't update state (prevents infinite loop)
       if (Math.abs(diff) < 0.001) {
-        return prev;
+        return prev; // Return same reference = no re-render
       }
       // Smooth easing - move 10% of remaining distance each frame
       const newPsi = prev.currentPsi + diff * 0.1;
       return { ...prev, currentPsi: newPsi };
     });
-    animationRef.current = requestAnimationFrame(animatePsi);
   }, []);
 
-  // Start animation loop
+  // Animation loop that only runs when needed
   useEffect(() => {
-    animationRef.current = requestAnimationFrame(animatePsi);
+    let frameId: number | null = null;
+    let isAnimating = false;
+    
+    const runAnimation = () => {
+      animatePsi();
+      frameId = requestAnimationFrame(runAnimation);
+    };
+    
+    // Check if we need to animate (only when target differs from current)
+    const checkAndAnimate = () => {
+      setStreamingState((prev) => {
+        const needsAnimation = Math.abs(prev.targetPsi - prev.currentPsi) >= 0.001;
+        if (needsAnimation && !isAnimating) {
+          isAnimating = true;
+          frameId = requestAnimationFrame(runAnimation);
+        } else if (!needsAnimation && isAnimating) {
+          isAnimating = false;
+          if (frameId) {
+            cancelAnimationFrame(frameId);
+            frameId = null;
+          }
+        }
+        return prev; // Don't change state, just check
+      });
+    };
+    
+    // Initial check
+    checkAndAnimate();
+    
+    // Re-check periodically (every 100ms) instead of every frame
+    const intervalId = setInterval(checkAndAnimate, 100);
+    
     return () => {
-      if (animationRef.current) {
-        cancelAnimationFrame(animationRef.current);
+      clearInterval(intervalId);
+      if (frameId) {
+        cancelAnimationFrame(frameId);
       }
     };
   }, [animatePsi]);
