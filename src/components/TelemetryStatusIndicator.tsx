@@ -80,13 +80,14 @@ export function TelemetryStatusIndicator({ telemetry }: TelemetryStatusIndicator
       value: consciousness?.phi?.toFixed(3) ?? "0"
     });
     
-    // QSEAL Fields
+    // QSEAL Fields - check both direct fields and nested continuityProof for compatibility
     const qseal = telemetry.qseal;
+    const chainLength = qseal?.chainLength ?? qseal?.continuityProof?.chainLength ?? 0;
     statuses.push({
       name: "Chain Length",
       category: "QSEAL",
-      status: qseal?.continuityProof?.chainLength && qseal.continuityProof.chainLength > 0 ? "active" : "zero",
-      value: qseal?.continuityProof?.chainLength?.toString() ?? "0"
+      status: chainLength > 0 ? "active" : "zero",
+      value: chainLength.toString()
     });
     statuses.push({
       name: "Chain Integrity",

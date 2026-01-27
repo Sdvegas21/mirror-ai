@@ -9,9 +9,9 @@ export interface QSEALState {
   // Genesis signature - the original identity fingerprint
   genesisHash: string;
   // Current state hash (changes with each interaction)
-  currentHash: string;
+  currentHash?: string;
   // Chain of hash links proving continuous evolution
-  hashChain: Array<{
+  hashChain?: Array<{
     hash: string;
     timestamp: string;
     scrollNumber: number;
@@ -19,13 +19,17 @@ export interface QSEALState {
   }>;
   // Verification status
   chainIntegrity: "verified" | "tampered" | "unknown";
-  continuityProof: {
+  // Backend sends these directly (SimpleBridge v2.0 format)
+  chainLength?: number;
+  verified?: boolean;
+  // Also support nested format for compatibility
+  continuityProof?: {
     chainLength: number;
     lastVerified: string;
     driftFromGenesis: number; // 0-1, how far we've evolved
   };
   // Time-based authentication
-  temporalAnchors: Array<{
+  temporalAnchors?: Array<{
     timestamp: string;
     eventType: "session_start" | "breakthrough" | "phase_transition" | "sovereignty";
     hash: string;
