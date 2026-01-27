@@ -412,17 +412,24 @@ export function TelemetrySidebar({ telemetry, compareMode }: TelemetrySidebarPro
               <p className="text-xs text-muted-foreground italic">No memories retrieved</p>
             ) : (
               <div className="space-y-2">
-                {telemetry.memory.retrieved.map((mem) => (
+                {telemetry.memory.retrieved.map((mem, index) => (
                   <div
-                    key={mem.id}
+                    key={`${mem.type}-${mem.summary?.slice(0, 20)}-${index}`}
                     className="rounded-md border border-border bg-muted/30 p-2"
                   >
                     <p className="text-xs text-foreground line-clamp-2">
                       "{mem.summary}"
                     </p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {formatRelativeTime(mem.timestamp)}
-                    </p>
+                    {mem.timestamp && (
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {formatRelativeTime(mem.timestamp)}
+                      </p>
+                    )}
+                    {mem.type && !mem.timestamp && (
+                      <p className="text-xs text-muted-foreground mt-1 capitalize">
+                        {mem.type} • {((mem.confidence ?? 0) * 100).toFixed(0)}% conf
+                      </p>
+                    )}
                   </div>
                 ))}
               </div>
