@@ -233,20 +233,42 @@ export default function Index() {
     backendStatus: state.backendStatus,
   });
 
-  // Check backend health on mount
+  // Check backend health on mount and fetch initial telemetry
   useEffect(() => {
     const checkBackend = async () => {
       setState((prev) => ({ ...prev, backendStatus: "connecting" }));
       try {
         await eosClient.healthCheck();
         setState((prev) => ({ ...prev, backendStatus: "connected" }));
+        
+        // Fetch initial telemetry to populate sidebar with real values
+        try {
+          const telemetryData = await eosClient.getTelemetry(state.currentUser);
+          console.log("📊 Initial telemetry loaded:", telemetryData);
+          setState((prev) => ({
+            ...prev,
+            telemetry: {
+              ...prev.telemetry,
+              ...telemetryData,
+              pad: telemetryData.pad || prev.telemetry.pad,
+              consciousness: telemetryData.consciousness || prev.telemetry.consciousness,
+              memory: telemetryData.memory || prev.telemetry.memory,
+              bcpSubstrate: telemetryData.bcpSubstrate || prev.telemetry.bcpSubstrate,
+              breakthrough: telemetryData.breakthrough || prev.telemetry.breakthrough,
+              elm: telemetryData.elm || prev.telemetry.elm,
+              qseal: telemetryData.qseal || prev.telemetry.qseal,
+            },
+          }));
+        } catch (telemetryError) {
+          console.log("Initial telemetry fetch failed (non-critical):", telemetryError);
+        }
       } catch (error) {
         console.error("Backend health check failed:", error);
         setState((prev) => ({ ...prev, backendStatus: "disconnected" }));
       }
     };
     checkBackend();
-  }, []);
+  }, [state.currentUser]);
 
   // Load messages when active conversation changes
   useEffect(() => {
