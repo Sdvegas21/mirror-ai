@@ -274,7 +274,7 @@ export interface TelemetryState {
 }
 
 export interface AppState {
-  currentUser: "Shawn" | "Bob" | "Guest";
+  currentUser: "shawn" | "bob" | "guest"; // lowercase to match backend normalization
   compareMode: boolean;
   backendStatus: "disconnected" | "connecting" | "connected";
   standardMessages: Message[];
@@ -283,4 +283,4 @@ export interface AppState {
 }
 
 export type BackendStatus = "disconnected" | "connecting" | "connected";
-export type UserOption = "Shawn" | "Bob" | "Guest";
+export type UserOption = "shawn" | "bob" | "guest"; // lowercase to match backend normalization

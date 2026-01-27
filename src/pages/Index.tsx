@@ -18,7 +18,7 @@ function generateId(): string {
 }
 
 const initialState: AppState = {
-  currentUser: "Shawn",
+  currentUser: "shawn", // lowercase to match backend normalization
   compareMode: true,
   backendStatus: "disconnected",
   standardMessages: [],
