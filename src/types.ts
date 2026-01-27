@@ -67,9 +67,11 @@ export interface BcpSubstrate {
 }
 
 export interface MemoryItem {
-  id: string;
+  id?: string;
   summary: string;
-  timestamp: string;
+  timestamp?: string;
+  type?: "identity" | "preferences" | "projects" | "relationship" | "emotional_moments";
+  confidence?: number; // 0.0 to 1.0
 }
 
 // Phase 2: Typed Fact Collections
