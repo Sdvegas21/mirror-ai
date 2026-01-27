@@ -18,7 +18,8 @@ interface HeaderBarProps {
   telemetry?: TelemetryState;
 }
 
-const users: UserOption[] = ["Shawn", "Bob", "Guest"];
+// Lowercase user IDs to match backend normalization
+const users: UserOption[] = ["shawn", "bob", "guest"];
 
 export function HeaderBar({
   currentUser,
