@@ -89,6 +89,8 @@ export interface MemoryState {
   retrieved: MemoryItem[];
   storedThisTurn: number;
   totalMemories: number;
+  // Backend may send memories_used instead of totalMemories
+  memories_used?: number;
   // Phase 2: Fact-based memory additions
   factCollections?: FactCollections;
   queryRoute?: QueryRoute;
