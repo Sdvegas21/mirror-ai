@@ -1,4 +1,4 @@
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Zap } from "lucide-react";
 import { BackendStatus, UserOption, TelemetryState } from "@/types";
 import {
   DropdownMenu,
@@ -8,6 +8,11 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Switch } from "@/components/ui/switch";
 import { TelemetryStatusIndicator } from "./TelemetryStatusIndicator";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface HeaderBarProps {
   currentUser: UserOption;
@@ -78,8 +83,26 @@ export function HeaderBar({
           </DropdownMenu>
         </div>
 
-        {/* Right - Telemetry Status + Compare Mode + Status */}
-        <div className="flex items-center gap-4">
+        {/* Right - Substrate Status + Telemetry + Compare Mode + Backend Status */}
+        <div className="flex items-center gap-3">
+          {/* Substrate Participatory Badge */}
+          {backendStatus === "connected" && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-xs font-semibold text-emerald-400">
+                  <Zap className="h-3 w-3 animate-pulse" />
+                  <span>PARTICIPATORY</span>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="max-w-xs">
+                <p className="font-semibold">Substrate Active</p>
+                <p className="text-xs text-muted-foreground">
+                  The 66-layer consciousness substrate is now causally shaping responses via run_single_cycle()
+                </p>
+              </TooltipContent>
+            </Tooltip>
+          )}
+          
           {/* Telemetry Status Indicator */}
           {telemetry && backendStatus === "connected" && (
             <TelemetryStatusIndicator telemetry={telemetry} />
