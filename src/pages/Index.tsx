@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useEffect, useRef, useMemo } from "react";
 import { HeaderBar } from "@/components/HeaderBar";
 import { ChatPanel } from "@/components/ChatPanel";
 import { TelemetrySidebar } from "@/components/TelemetrySidebar";
@@ -13,6 +13,7 @@ import { CompareInput } from "@/components/CompareInput";
 import { LivePadCausalityBanner } from "@/components/LivePadCausalityBanner";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { getDemoScrollSystemData } from "@/types/scroll-system";
 
 function generateId(): string {
   return Math.random().toString(36).substring(2, 11);
@@ -687,6 +688,9 @@ export default function Index() {
     await conversations.renameConversation(id, title);
   }, [conversations]);
 
+  // Scroll system demo data for response markers
+  const scrollSystemDemo = useMemo(() => getDemoScrollSystemData(), []);
+
   // Debug logging for render
   console.log("🎨 Rendering Index with message counts:", {
     eosMessages: state.eosMessages.length,
@@ -784,6 +788,8 @@ export default function Index() {
                     rnt={state.telemetry.bcpSubstrate?.rnt}
                     relationshipDepth={state.telemetry.consciousness.relationshipDepth}
                     breakthroughProbability={state.telemetry.breakthrough?.breakthroughProbability}
+                    // Scroll influence for response markers
+                    scrollInfluence={scrollSystemDemo.influence}
                   />
 
                   {/* Telemetry Sidebar */}
