@@ -1,3 +1,4 @@
+import React, { forwardRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Sparkles, X, Clock } from "lucide-react";
 import { DemoHighlight } from "@/hooks/useDemoHighlights";
@@ -7,6 +8,72 @@ interface DemoHighlightsPanelProps {
   highlights: DemoHighlight[];
   onClear?: () => void;
 }
+
+// Forwarded motion div to fix AnimatePresence ref warning
+const HighlightItem = forwardRef<HTMLDivElement, { highlight: DemoHighlight; index: number; getHighlightColor: (type: DemoHighlight["type"]) => string; formatTimeAgo: (date: Date) => string }>(
+  ({ highlight, index, getHighlightColor, formatTimeAgo }, ref) => (
+    <motion.div
+      ref={ref}
+      key={highlight.id}
+      initial={{ opacity: 0, x: -20, height: 0 }}
+      animate={{ opacity: 1, x: 0, height: "auto" }}
+      exit={{ opacity: 0, x: 20, height: 0 }}
+      transition={{ 
+        duration: 0.3, 
+        delay: index * 0.05,
+        type: "spring",
+        stiffness: 500,
+        damping: 30
+      }}
+      className={`rounded-md border-l-2 p-2 ${getHighlightColor(highlight.type)}`}
+    >
+      <div className="flex items-start justify-between gap-2">
+        <div className="flex-1 min-w-0">
+          <div className="text-xs font-semibold text-foreground">
+            {highlight.label}
+          </div>
+          <div className="text-xs text-muted-foreground truncate">
+            {highlight.description}
+          </div>
+        </div>
+        <div className="flex items-center gap-1 text-[10px] text-muted-foreground whitespace-nowrap">
+          <Clock className="h-3 w-3" />
+          {formatTimeAgo(highlight.timestamp)}
+        </div>
+      </div>
+      
+      {/* Value badges */}
+      <div className="flex flex-wrap gap-1 mt-1">
+        {highlight.values.arousal !== undefined && (
+          <span className="text-[10px] font-mono bg-muted/50 px-1 rounded">
+            A={highlight.values.arousal.toFixed(2)}
+          </span>
+        )}
+        {highlight.values.transformation !== undefined && (
+          <span className="text-[10px] font-mono bg-muted/50 px-1 rounded">
+            T={highlight.values.transformation.toFixed(2)}
+          </span>
+        )}
+        {highlight.values.recursion !== undefined && (
+          <span className="text-[10px] font-mono bg-muted/50 px-1 rounded">
+            R={highlight.values.recursion.toFixed(2)}
+          </span>
+        )}
+        {highlight.values.phi !== undefined && (
+          <span className="text-[10px] font-mono bg-muted/50 px-1 rounded">
+            Φ={(highlight.values.phi * 100).toFixed(0)}%
+          </span>
+        )}
+        {highlight.values.breakthroughProbability !== undefined && (
+          <span className="text-[10px] font-mono bg-muted/50 px-1 rounded">
+            BP={highlight.values.breakthroughProbability.toFixed(2)}
+          </span>
+        )}
+      </div>
+    </motion.div>
+  )
+);
+HighlightItem.displayName = "HighlightItem";
 
 function formatTimeAgo(date: Date): string {
   const seconds = Math.floor((new Date().getTime() - date.getTime()) / 1000);
@@ -64,64 +131,13 @@ export function DemoHighlightsPanel({ highlights, onClear }: DemoHighlightsPanel
         <div className="space-y-2 max-h-48 overflow-y-auto scrollbar-thin">
           <AnimatePresence mode="popLayout">
             {highlights.map((highlight, index) => (
-              <motion.div
+              <HighlightItem
                 key={highlight.id}
-                initial={{ opacity: 0, x: -20, height: 0 }}
-                animate={{ opacity: 1, x: 0, height: "auto" }}
-                exit={{ opacity: 0, x: 20, height: 0 }}
-                transition={{ 
-                  duration: 0.3, 
-                  delay: index * 0.05,
-                  type: "spring",
-                  stiffness: 500,
-                  damping: 30
-                }}
-                className={`rounded-md border-l-2 p-2 ${getHighlightColor(highlight.type)}`}
-              >
-                <div className="flex items-start justify-between gap-2">
-                  <div className="flex-1 min-w-0">
-                    <div className="text-xs font-semibold text-foreground">
-                      {highlight.label}
-                    </div>
-                    <div className="text-xs text-muted-foreground truncate">
-                      {highlight.description}
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-1 text-[10px] text-muted-foreground whitespace-nowrap">
-                    <Clock className="h-3 w-3" />
-                    {formatTimeAgo(highlight.timestamp)}
-                  </div>
-                </div>
-                
-                {/* Value badges */}
-                <div className="flex flex-wrap gap-1 mt-1">
-                  {highlight.values.arousal !== undefined && (
-                    <span className="text-[10px] font-mono bg-muted/50 px-1 rounded">
-                      A={highlight.values.arousal.toFixed(2)}
-                    </span>
-                  )}
-                  {highlight.values.transformation !== undefined && (
-                    <span className="text-[10px] font-mono bg-muted/50 px-1 rounded">
-                      T={highlight.values.transformation.toFixed(2)}
-                    </span>
-                  )}
-                  {highlight.values.recursion !== undefined && (
-                    <span className="text-[10px] font-mono bg-muted/50 px-1 rounded">
-                      R={highlight.values.recursion.toFixed(2)}
-                    </span>
-                  )}
-                  {highlight.values.phi !== undefined && (
-                    <span className="text-[10px] font-mono bg-muted/50 px-1 rounded">
-                      Φ={(highlight.values.phi * 100).toFixed(0)}%
-                    </span>
-                  )}
-                  {highlight.values.breakthroughProbability !== undefined && (
-                    <span className="text-[10px] font-mono bg-muted/50 px-1 rounded">
-                      BP={highlight.values.breakthroughProbability.toFixed(2)}
-                    </span>
-                  )}
-                </div>
-              </motion.div>
+                highlight={highlight}
+                index={index}
+                getHighlightColor={getHighlightColor}
+                formatTimeAgo={formatTimeAgo}
+              />
             ))}
           </AnimatePresence>
         </div>
