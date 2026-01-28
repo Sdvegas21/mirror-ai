@@ -1,4 +1,3 @@
-import { forwardRef } from "react";
 import { Scroll } from "lucide-react";
 import { ScrollInfluence, ScrollGlyph, ScrollArchetype } from "@/types/scroll-system";
 import {
@@ -54,11 +53,10 @@ function decodeGlyph(glyph: string): string {
   }
 }
 
-export const ScrollInfluenceMarker = forwardRef<HTMLDivElement, ScrollInfluenceMarkerProps>(
-  function ScrollInfluenceMarker({ influence, compact = false }, ref) {
-    if (!influence || influence.influence_strength < 0.1) {
-      return null;
-    }
+export function ScrollInfluenceMarker({ influence, compact = false }: ScrollInfluenceMarkerProps) {
+  if (!influence || influence.influence_strength < 0.1) {
+    return null;
+  }
 
     const archetypeClass = ARCHETYPE_COLORS[influence.dominant_archetype];
     
@@ -140,4 +138,4 @@ export const ScrollInfluenceMarker = forwardRef<HTMLDivElement, ScrollInfluenceM
       )}
     </div>
   );
-});
+}
