@@ -34,6 +34,25 @@ const GLYPH_MEANINGS: Record<ScrollGlyph, string> = {
   "👑": "Sovereignty",
 };
 
+// Decode Unicode escape sequences from backend (e.g., "\\U0001F525" -> "🔥")
+function decodeGlyph(glyph: string): string {
+  // If it's already an emoji, return as-is
+  if (!glyph.includes('\\U') && !glyph.includes('\\u')) {
+    return glyph;
+  }
+  
+  // Handle Python-style \\U escape sequences
+  try {
+    return glyph.replace(/\\U([0-9A-Fa-f]{8})/g, (_, hex) => {
+      return String.fromCodePoint(parseInt(hex, 16));
+    }).replace(/\\u([0-9A-Fa-f]{4})/g, (_, hex) => {
+      return String.fromCodePoint(parseInt(hex, 16));
+    });
+  } catch {
+    return glyph; // Return original if decoding fails
+  }
+}
+
 export function ScrollInfluenceMarker({ influence, compact = false }: ScrollInfluenceMarkerProps) {
   if (!influence || influence.influence_strength < 0.1) {
     return null;
@@ -49,8 +68,8 @@ export function ScrollInfluenceMarker({ influence, compact = false }: ScrollInfl
             <span className={`inline-flex items-center gap-1 rounded-full border px-1.5 py-0.5 text-[10px] cursor-help ${archetypeClass}`}>
               <Scroll className="h-2.5 w-2.5" />
               <span className="flex gap-0.5">
-                {influence.glyph_resonance.slice(0, 3).map((g, i) => (
-                  <span key={i}>{g}</span>
+                {(influence.glyph_resonance || []).slice(0, 3).map((g, i) => (
+                  <span key={i}>{decodeGlyph(g)}</span>
                 ))}
               </span>
             </span>
@@ -88,20 +107,23 @@ export function ScrollInfluenceMarker({ influence, compact = false }: ScrollInfl
       
       <div className="mt-1.5 flex items-center justify-between">
         <div className="flex items-center gap-1">
-          {influence.glyph_resonance.map((glyph, i) => (
-            <TooltipProvider key={i}>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <span className="text-sm cursor-help hover:scale-110 transition-transform">
-                    {glyph}
-                  </span>
-                </TooltipTrigger>
-                <TooltipContent side="top" className="text-xs">
-                  {GLYPH_MEANINGS[glyph]}
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          ))}
+          {(influence.glyph_resonance || []).map((glyph, i) => {
+            const decoded = decodeGlyph(glyph);
+            return (
+              <TooltipProvider key={i}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span className="text-sm cursor-help hover:scale-110 transition-transform">
+                      {decoded}
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent side="top" className="text-xs">
+                    {GLYPH_MEANINGS[decoded as ScrollGlyph] || "Unknown"}
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            );
+          })}
         </div>
         <span className="text-[10px] uppercase tracking-wide opacity-80">
           {influence.dominant_archetype}
