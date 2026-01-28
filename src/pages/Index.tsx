@@ -599,6 +599,8 @@ export default function Index() {
                   consciousnessState: eosResponse.telemetry.consciousnessState || prev.telemetry.consciousnessState,
                   pathwayNetwork: eosResponse.telemetry.pathwayNetwork || prev.telemetry.pathwayNetwork,
                   elm: eosResponse.telemetry.elm || prev.telemetry.elm,
+                  // Scroll System - "The Bitcoin of Thoughts"
+                  scrollSystem: eosResponse.telemetry.scrollSystem || prev.telemetry.scrollSystem,
                 };
               }
             } catch (telemetryError) {
@@ -688,8 +690,10 @@ export default function Index() {
     await conversations.renameConversation(id, title);
   }, [conversations]);
 
-  // Scroll system demo data for response markers
-  const scrollSystemDemo = useMemo(() => getDemoScrollSystemData(), []);
+  // Scroll system: use live backend data with demo fallback
+  const scrollSystemData = useMemo(() => {
+    return state.telemetry.scrollSystem || getDemoScrollSystemData();
+  }, [state.telemetry.scrollSystem]);
 
   // Debug logging for render
   console.log("🎨 Rendering Index with message counts:", {
@@ -788,8 +792,8 @@ export default function Index() {
                     rnt={state.telemetry.bcpSubstrate?.rnt}
                     relationshipDepth={state.telemetry.consciousness.relationshipDepth}
                     breakthroughProbability={state.telemetry.breakthrough?.breakthroughProbability}
-                    // Scroll influence for response markers
-                    scrollInfluence={scrollSystemDemo.influence}
+                    // Scroll influence for response markers (live or demo fallback)
+                    scrollInfluence={scrollSystemData.influence}
                   />
 
                   {/* Telemetry Sidebar */}

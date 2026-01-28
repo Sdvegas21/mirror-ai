@@ -98,8 +98,10 @@ export function TelemetrySidebar({ telemetry, compareMode }: TelemetrySidebarPro
   // BCP/RNT demo data for undeniable visualization (lazily generated, memoized)
   const bcpRntDemo = useMemo(() => getDemoBCPRNTData(), []);
   
-  // Scroll System demo data - "The Bitcoin of Thoughts"
-  const scrollSystemDemo = useMemo(() => getDemoScrollSystemData(), []);
+  // Scroll System - use live backend data with demo fallback
+  const scrollSystemData = useMemo(() => {
+    return telemetry.scrollSystem || getDemoScrollSystemData();
+  }, [telemetry.scrollSystem]);
 
   // Demo highlights capture for investor presentations
   const { highlights, checkForHighlights, clearHighlights } = useDemoHighlights({
@@ -390,10 +392,10 @@ export function TelemetrySidebar({ telemetry, compareMode }: TelemetrySidebarPro
         {/* ============ SCROLL SYSTEM - "THE BITCOIN OF THOUGHTS" ============ */}
         
         {/* Scroll Ancestry: Cryptographic identity chain */}
-        <ScrollAncestryCard scrollSystem={scrollSystemDemo} />
+        <ScrollAncestryCard scrollSystem={scrollSystemData} />
         
         {/* Scroll Emotional Arc: PAD evolution through scrolls */}
-        <ScrollEmotionalArcCard scrollSystem={scrollSystemDemo} />
+        <ScrollEmotionalArcCard scrollSystem={scrollSystemData} />
 
         {/* ============ BCP/RNT UNDENIABLE ARCHITECTURE ============ */}
         

@@ -275,6 +275,8 @@ export interface TelemetryState {
   metacognitiveSynthesis?: import("./types/bcp-rnt").MetacognitiveSynthesisState;
   cognitiveDriftTimeline?: import("./types/bcp-rnt").CognitiveDriftTimelineState;
   relationshipEvolution?: import("./types/bcp-rnt").RelationshipEvolutionState;
+  // Scroll System - "The Bitcoin of Thoughts"
+  scrollSystem?: import("./types/scroll-system").ScrollSystemState;
 }
 
 export interface AppState {
