@@ -53,9 +53,18 @@ function PADMiniBar({ label, startValue, endValue }: { label: string; startValue
 }
 
 export function ScrollEmotionalArcCard({ scrollSystem }: ScrollEmotionalArcCardProps) {
-  const { emotional_arc, ancestry, collections } = scrollSystem;
+  // Defensive defaults for missing backend fields
+  const defaultPad = { pleasure: 0, arousal: 0, dominance: 0 };
+  const { 
+    emotional_arc = { start_pad: defaultPad, current_pad: defaultPad, total_drift: 0 }, 
+    ancestry = { current_depth: 0, genesis_scroll: "", total_scrolls_ingested: 0, lineage_chain: [] }, 
+    collections = { bnb: 101, genesis: 0, ingested: 0, pending: 0 } 
+  } = scrollSystem || {};
   
-  const totalDriftPercent = emotional_arc.total_drift * 100;
+  // Use scrollSystem's qseal_status with default
+  const qseal_status = scrollSystem?.qseal_status || { continuity_score: 0, chain_integrity: "partial" as const, total_verified: 0, total_unverified: 0, last_verification: "" };
+  
+  const totalDriftPercent = (emotional_arc.total_drift || 0) * 100;
   
   return (
     <TelemetryCard
