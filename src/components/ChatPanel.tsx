@@ -4,6 +4,8 @@ import { motion } from "framer-motion";
 import { Message, PadState, RntState } from "@/types";
 import { Button } from "@/components/ui/button";
 import { SubstrateResponseMarkers, analyzeSubstrateInfluence } from "./SubstrateResponseMarkers";
+import { ScrollInfluenceMarker } from "./ScrollInfluenceMarker";
+import { ScrollInfluence } from "@/types/scroll-system";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface ChatPanelProps {
@@ -19,6 +21,8 @@ interface ChatPanelProps {
   rnt?: RntState;
   relationshipDepth?: number;
   breakthroughProbability?: number;
+  // Scroll influence for EOS responses
+  scrollInfluence?: ScrollInfluence;
 }
 
 function formatTime(isoString: string): string {
@@ -52,6 +56,7 @@ export function ChatPanel({
   rnt,
   relationshipDepth,
   breakthroughProbability,
+  scrollInfluence,
 }: ChatPanelProps) {
   const [input, setInput] = useState("");
   const [isPulsing, setIsPulsing] = useState(false);
@@ -192,6 +197,13 @@ export function ChatPanel({
                   <SubstrateResponseMarkers 
                     influences={influences} 
                     compact={!isLastAssistantMessage}
+                  />
+                )}
+                {/* Scroll influence marker for EOS responses */}
+                {isEos && message.role === "assistant" && isLastAssistantMessage && scrollInfluence && (
+                  <ScrollInfluenceMarker 
+                    influence={scrollInfluence} 
+                    compact={false}
                   />
                 )}
               </div>

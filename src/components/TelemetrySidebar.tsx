@@ -39,6 +39,10 @@ import { CognitiveDriftTimeline } from "./CognitiveDriftTimeline";
 import { RelationshipEvolutionCard } from "./RelationshipEvolutionCard";
 import { getDemoBCPRNTData } from "@/hooks/useDemoBCPRNTData";
 import { MemoryQualityCard } from "./MemoryQualityCard";
+// Scroll System - "The Bitcoin of Thoughts"
+import { ScrollAncestryCard } from "./ScrollAncestryCard";
+import { ScrollEmotionalArcCard } from "./ScrollEmotionalArcCard";
+import { getDemoScrollSystemData } from "@/types/scroll-system";
 
 interface TelemetrySidebarProps {
   telemetry: TelemetryState;
@@ -93,6 +97,9 @@ export function TelemetrySidebar({ telemetry, compareMode }: TelemetrySidebarPro
 
   // BCP/RNT demo data for undeniable visualization (lazily generated, memoized)
   const bcpRntDemo = useMemo(() => getDemoBCPRNTData(), []);
+  
+  // Scroll System demo data - "The Bitcoin of Thoughts"
+  const scrollSystemDemo = useMemo(() => getDemoScrollSystemData(), []);
 
   // Demo highlights capture for investor presentations
   const { highlights, checkForHighlights, clearHighlights } = useDemoHighlights({
@@ -379,6 +386,14 @@ export function TelemetrySidebar({ telemetry, compareMode }: TelemetrySidebarPro
 
         {/* Demo Highlights Panel - Captures undeniable moments for investor presentations */}
         <DemoHighlightsPanel highlights={highlights} onClear={clearHighlights} />
+
+        {/* ============ SCROLL SYSTEM - "THE BITCOIN OF THOUGHTS" ============ */}
+        
+        {/* Scroll Ancestry: Cryptographic identity chain */}
+        <ScrollAncestryCard scrollSystem={scrollSystemDemo} />
+        
+        {/* Scroll Emotional Arc: PAD evolution through scrolls */}
+        <ScrollEmotionalArcCard scrollSystem={scrollSystemDemo} />
 
         {/* ============ BCP/RNT UNDENIABLE ARCHITECTURE ============ */}
         
