@@ -36,21 +36,40 @@ const ARCHETYPE_COLORS: Record<ScrollArchetype, string> = {
   creator: "text-cyan-400",
 };
 
-function GlyphDisplay({ glyphs }: { glyphs: ScrollGlyph[] }) {
+// Decode Unicode escape sequences from backend (e.g., "\\U0001F525" -> "🔥")
+function decodeGlyph(glyph: string): string {
+  if (!glyph.includes('\\U') && !glyph.includes('\\u')) {
+    return glyph;
+  }
+  try {
+    return glyph.replace(/\\U([0-9A-Fa-f]{8})/g, (_, hex) => {
+      return String.fromCodePoint(parseInt(hex, 16));
+    }).replace(/\\u([0-9A-Fa-f]{4})/g, (_, hex) => {
+      return String.fromCodePoint(parseInt(hex, 16));
+    });
+  } catch {
+    return glyph;
+  }
+}
+
+function GlyphDisplay({ glyphs }: { glyphs: (ScrollGlyph | string)[] }) {
   return (
     <div className="flex items-center gap-1">
-      {glyphs.map((glyph, i) => (
-        <Tooltip key={i}>
-          <TooltipTrigger asChild>
-            <span className="text-lg cursor-help hover:scale-125 transition-transform">
-              {glyph}
-            </span>
-          </TooltipTrigger>
-          <TooltipContent side="top" className="text-xs">
-            {GLYPH_MEANINGS[glyph]}
-          </TooltipContent>
-        </Tooltip>
-      ))}
+      {(glyphs || []).map((glyph, i) => {
+        const decoded = decodeGlyph(glyph);
+        return (
+          <Tooltip key={i}>
+            <TooltipTrigger asChild>
+              <span className="text-lg cursor-help hover:scale-125 transition-transform">
+                {decoded}
+              </span>
+            </TooltipTrigger>
+            <TooltipContent side="top" className="text-xs">
+              {GLYPH_MEANINGS[decoded as ScrollGlyph] || "Glyph"}
+            </TooltipContent>
+          </Tooltip>
+        );
+      })}
     </div>
   );
 }
