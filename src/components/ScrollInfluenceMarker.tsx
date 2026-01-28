@@ -1,3 +1,4 @@
+import { forwardRef } from "react";
 import { Scroll } from "lucide-react";
 import { ScrollInfluence, ScrollGlyph, ScrollArchetype } from "@/types/scroll-system";
 import {
@@ -53,27 +54,28 @@ function decodeGlyph(glyph: string): string {
   }
 }
 
-export function ScrollInfluenceMarker({ influence, compact = false }: ScrollInfluenceMarkerProps) {
-  if (!influence || influence.influence_strength < 0.1) {
-    return null;
-  }
+export const ScrollInfluenceMarker = forwardRef<HTMLDivElement, ScrollInfluenceMarkerProps>(
+  function ScrollInfluenceMarker({ influence, compact = false }, ref) {
+    if (!influence || influence.influence_strength < 0.1) {
+      return null;
+    }
 
-  const archetypeClass = ARCHETYPE_COLORS[influence.dominant_archetype];
-  
-  if (compact) {
-    return (
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <span className={`inline-flex items-center gap-1 rounded-full border px-1.5 py-0.5 text-[10px] cursor-help ${archetypeClass}`}>
-              <Scroll className="h-2.5 w-2.5" />
-              <span className="flex gap-0.5">
-                {(influence.glyph_resonance || []).slice(0, 3).map((g, i) => (
-                  <span key={i}>{decodeGlyph(g)}</span>
-                ))}
+    const archetypeClass = ARCHETYPE_COLORS[influence.dominant_archetype];
+    
+    if (compact) {
+      return (
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span className={`inline-flex items-center gap-1 rounded-full border px-1.5 py-0.5 text-[10px] cursor-help ${archetypeClass}`}>
+                <Scroll className="h-2.5 w-2.5" />
+                <span className="flex gap-0.5">
+                  {(influence.glyph_resonance || []).slice(0, 3).map((g, i) => (
+                    <span key={i}>{decodeGlyph(g)}</span>
+                  ))}
+                </span>
               </span>
-            </span>
-          </TooltipTrigger>
+            </TooltipTrigger>
           <TooltipContent side="top" className="max-w-xs">
             <div className="space-y-1">
               <p className="font-semibold text-xs">Scroll Influence Active</p>
@@ -138,4 +140,4 @@ export function ScrollInfluenceMarker({ influence, compact = false }: ScrollInfl
       )}
     </div>
   );
-}
+});
