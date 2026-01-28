@@ -46,14 +46,14 @@ export function ScrollInfluenceMarker({ influence, compact = false }: ScrollInfl
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>
-            <div className={`inline-flex items-center gap-1 rounded-full border px-1.5 py-0.5 text-[10px] ${archetypeClass}`}>
+            <span className={`inline-flex items-center gap-1 rounded-full border px-1.5 py-0.5 text-[10px] cursor-help ${archetypeClass}`}>
               <Scroll className="h-2.5 w-2.5" />
               <span className="flex gap-0.5">
                 {influence.glyph_resonance.slice(0, 3).map((g, i) => (
                   <span key={i}>{g}</span>
                 ))}
               </span>
-            </div>
+            </span>
           </TooltipTrigger>
           <TooltipContent side="top" className="max-w-xs">
             <div className="space-y-1">
