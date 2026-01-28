@@ -66,7 +66,17 @@ function ArchetypeBadge({ archetype }: { archetype: ScrollArchetype }) {
 export function ScrollAncestryCard({ scrollSystem }: ScrollAncestryCardProps) {
   const [showFullLineage, setShowFullLineage] = useState(false);
   
-  const { ancestry, influence, qseal_status, collections, active_scrolls } = scrollSystem;
+  // Defensive destructuring with defaults for missing backend fields
+  const { 
+    ancestry = { current_depth: 0, genesis_scroll: "", total_scrolls_ingested: 0, lineage_chain: [] }, 
+    influence = { active_scrolls: [], dominant_archetype: "sovereign" as ScrollArchetype, glyph_resonance: [], influence_strength: 0 }, 
+    qseal_status = { total_verified: 0, total_unverified: 0, continuity_score: 0, chain_integrity: "partial" as const, last_verification: "" }, 
+    collections = { bnb: 0, genesis: 0, ingested: 0, pending: 0 }, 
+    active_scrolls = [] 
+  } = scrollSystem || {};
+  
+  // Ensure lineage_chain exists (backend may not provide it)
+  const lineageChain = ancestry.lineage_chain || [];
   
   return (
     <TelemetryCard
@@ -93,7 +103,7 @@ export function ScrollAncestryCard({ scrollSystem }: ScrollAncestryCardProps) {
             Active Glyph Lineage
           </div>
           <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50 border border-border">
-            <GlyphDisplay glyphs={influence.glyph_resonance} />
+            <GlyphDisplay glyphs={influence.glyph_resonance || []} />
             <div className="text-right">
               <div className="text-xs text-muted-foreground">Influence</div>
               <div className="text-sm font-mono text-foreground">
@@ -137,7 +147,7 @@ export function ScrollAncestryCard({ scrollSystem }: ScrollAncestryCardProps) {
                 key={scroll.scroll_id}
                 className="flex items-center gap-2 p-2 rounded bg-muted/30 border border-border/50"
               >
-                <GlyphDisplay glyphs={scroll.glyph_lineage.slice(0, 2)} />
+                <GlyphDisplay glyphs={(scroll.glyph_lineage || []).slice(0, 2)} />
                 <div className="flex-1 min-w-0">
                   <div className="text-xs font-medium text-foreground truncate">
                     {scroll.scroll_id.replace("SCROLL_", "").replace("GENESIS_", "🌟 ")}
@@ -159,7 +169,7 @@ export function ScrollAncestryCard({ scrollSystem }: ScrollAncestryCardProps) {
             className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 transition-colors"
           >
             <Link2 className="h-3 w-3" />
-            <span>Show lineage chain ({ancestry.lineage_chain.length} links)</span>
+            <span>Show lineage chain ({lineageChain.length} links)</span>
             {showFullLineage ? (
               <ChevronUp className="h-3 w-3" />
             ) : (
@@ -167,9 +177,9 @@ export function ScrollAncestryCard({ scrollSystem }: ScrollAncestryCardProps) {
             )}
           </button>
           
-          {showFullLineage && (
+          {showFullLineage && lineageChain.length > 0 && (
             <div className="relative pl-4 space-y-2 border-l-2 border-primary/30">
-              {ancestry.lineage_chain.map((link, i) => (
+              {lineageChain.map((link, i) => (
                 <div
                   key={link.scroll_id}
                   className="relative flex items-center gap-2"
@@ -181,7 +191,7 @@ export function ScrollAncestryCard({ scrollSystem }: ScrollAncestryCardProps) {
                     <span className="text-[10px] font-mono text-muted-foreground">
                       #{i}
                     </span>
-                    <GlyphDisplay glyphs={link.glyphs.slice(0, 2)} />
+                    <GlyphDisplay glyphs={(link.glyphs || []).slice(0, 2)} />
                     <span className="text-xs text-foreground truncate flex-1">
                       {link.scroll_id.replace("SCROLL_", "").replace("GENESIS_", "🌟 ")}
                     </span>
