@@ -62,12 +62,23 @@ function generateConversationId(): string {
 
 export function useConversations({ userId, backendStatus }: UseConversationsProps): UseConversationsReturn {
   // Initialize state with persisted conversation IDs
-  const [state, setState] = useState<ConversationsState>(() => ({
-    standardConversations: [],
-    eosConversations: [],
-    activeStandardConversationId: getPersistedConversationId('standard', userId),
-    activeEosConversationId: getPersistedConversationId('eos', userId),
-  }));
+  const [state, setState] = useState<ConversationsState>(() => {
+    const persistedStandard = getPersistedConversationId('standard', userId);
+    const persistedEos = getPersistedConversationId('eos', userId);
+    console.log('🔄 useConversations INIT:', { 
+      userId, 
+      persistedStandard, 
+      persistedEos,
+      localStorage_standard: localStorage.getItem('eos_active_standard_conversation'),
+      localStorage_eos: localStorage.getItem('eos_active_eos_conversation')
+    });
+    return {
+      standardConversations: [],
+      eosConversations: [],
+      activeStandardConversationId: persistedStandard,
+      activeEosConversationId: persistedEos,
+    };
+  });
   const [isLoading, setIsLoading] = useState(false);
   const [hasBackendSupport, setHasBackendSupport] = useState(false);
 
@@ -83,6 +94,11 @@ export function useConversations({ userId, backendStatus }: UseConversationsProp
           conversationClient.listConversations(userId, 'eos'),
         ]);
 
+        console.log('📋 Loaded conversations:', {
+          standard: standardConvs.map(c => ({ id: c.id, title: c.title })),
+          eos: eosConvs.map(c => ({ id: c.id, title: c.title }))
+        });
+
         // Check if backend supports conversations
         const hasSupport = standardConvs.length > 0 || eosConvs.length > 0;
         setHasBackendSupport(hasSupport);
@@ -92,13 +108,25 @@ export function useConversations({ userId, backendStatus }: UseConversationsProp
           const persistedStandardId = getPersistedConversationId('standard', userId);
           const persistedEosId = getPersistedConversationId('eos', userId);
           
-          const validStandardId = persistedStandardId && standardConvs.some(c => c.id === persistedStandardId)
+          const standardExists = standardConvs.some(c => c.id === persistedStandardId);
+          const eosExists = eosConvs.some(c => c.id === persistedEosId);
+          
+          const validStandardId = persistedStandardId && standardExists
             ? persistedStandardId
             : (standardConvs[0]?.id ?? null);
           
-          const validEosId = persistedEosId && eosConvs.some(c => c.id === persistedEosId)
+          const validEosId = persistedEosId && eosExists
             ? persistedEosId
             : (eosConvs[0]?.id ?? null);
+
+          console.log('🎯 Conversation ID resolution:', {
+            persistedStandardId,
+            persistedEosId,
+            standardExists,
+            eosExists,
+            validStandardId,
+            validEosId
+          });
 
           // Persist the resolved IDs
           persistConversationId('standard', userId, validStandardId);
