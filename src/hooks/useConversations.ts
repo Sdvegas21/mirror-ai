@@ -3,6 +3,40 @@ import { Conversation, ConversationsState } from '@/types/conversation';
 import { conversationClient } from '@/api/conversationClient';
 import { Message } from '@/types';
 
+// localStorage keys for persisting active conversation IDs
+const STORAGE_KEY_STANDARD = 'eos_active_standard_conversation';
+const STORAGE_KEY_EOS = 'eos_active_eos_conversation';
+
+function getPersistedConversationId(mode: 'standard' | 'eos', userId: string): string | null {
+  try {
+    const key = mode === 'standard' ? STORAGE_KEY_STANDARD : STORAGE_KEY_EOS;
+    const stored = localStorage.getItem(key);
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      // Only return if it's for the same user
+      if (parsed.userId === userId) {
+        return parsed.conversationId;
+      }
+    }
+  } catch (e) {
+    console.warn('Failed to read persisted conversation ID:', e);
+  }
+  return null;
+}
+
+function persistConversationId(mode: 'standard' | 'eos', userId: string, conversationId: string | null): void {
+  try {
+    const key = mode === 'standard' ? STORAGE_KEY_STANDARD : STORAGE_KEY_EOS;
+    if (conversationId) {
+      localStorage.setItem(key, JSON.stringify({ userId, conversationId }));
+    } else {
+      localStorage.removeItem(key);
+    }
+  } catch (e) {
+    console.warn('Failed to persist conversation ID:', e);
+  }
+}
+
 interface UseConversationsProps {
   userId: string;
   backendStatus: 'connected' | 'connecting' | 'disconnected';
@@ -27,12 +61,13 @@ function generateConversationId(): string {
 }
 
 export function useConversations({ userId, backendStatus }: UseConversationsProps): UseConversationsReturn {
-  const [state, setState] = useState<ConversationsState>({
+  // Initialize state with persisted conversation IDs
+  const [state, setState] = useState<ConversationsState>(() => ({
     standardConversations: [],
     eosConversations: [],
-    activeStandardConversationId: null,
-    activeEosConversationId: null,
-  });
+    activeStandardConversationId: getPersistedConversationId('standard', userId),
+    activeEosConversationId: getPersistedConversationId('eos', userId),
+  }));
   const [isLoading, setIsLoading] = useState(false);
   const [hasBackendSupport, setHasBackendSupport] = useState(false);
 
@@ -52,16 +87,31 @@ export function useConversations({ userId, backendStatus }: UseConversationsProp
         const hasSupport = standardConvs.length > 0 || eosConvs.length > 0;
         setHasBackendSupport(hasSupport);
 
-        setState(prev => ({
-          ...prev,
-          standardConversations: standardConvs,
-          eosConversations: eosConvs,
-          // Auto-select the most recent conversation if none selected
-          activeStandardConversationId: prev.activeStandardConversationId || 
-            (standardConvs[0]?.id ?? null),
-          activeEosConversationId: prev.activeEosConversationId || 
-            (eosConvs[0]?.id ?? null),
-        }));
+        setState(prev => {
+          // Use persisted IDs if they exist in the loaded conversations, otherwise fall back to first
+          const persistedStandardId = getPersistedConversationId('standard', userId);
+          const persistedEosId = getPersistedConversationId('eos', userId);
+          
+          const validStandardId = persistedStandardId && standardConvs.some(c => c.id === persistedStandardId)
+            ? persistedStandardId
+            : (standardConvs[0]?.id ?? null);
+          
+          const validEosId = persistedEosId && eosConvs.some(c => c.id === persistedEosId)
+            ? persistedEosId
+            : (eosConvs[0]?.id ?? null);
+
+          // Persist the resolved IDs
+          persistConversationId('standard', userId, validStandardId);
+          persistConversationId('eos', userId, validEosId);
+
+          return {
+            ...prev,
+            standardConversations: standardConvs,
+            eosConversations: eosConvs,
+            activeStandardConversationId: validStandardId,
+            activeEosConversationId: validEosId,
+          };
+        });
       } catch (error) {
         console.error('Failed to load conversations:', error);
         // Fall back to legacy mode (single conversation per user)
@@ -80,6 +130,9 @@ export function useConversations({ userId, backendStatus }: UseConversationsProp
     
     if (backendConv) {
       setHasBackendSupport(true);
+      // Persist the new conversation ID
+      persistConversationId(mode, userId, backendConv.id);
+      
       setState(prev => {
         const key = mode === 'standard' ? 'standardConversations' : 'eosConversations';
         const activeKey = mode === 'standard' ? 'activeStandardConversationId' : 'activeEosConversationId';
@@ -103,6 +156,9 @@ export function useConversations({ userId, backendStatus }: UseConversationsProp
       messageCount: 0,
     };
 
+    // Persist the new local conversation ID
+    persistConversationId(mode, userId, localConv.id);
+
     setState(prev => {
       const key = mode === 'standard' ? 'standardConversations' : 'eosConversations';
       const activeKey = mode === 'standard' ? 'activeStandardConversationId' : 'activeEosConversationId';
@@ -117,11 +173,14 @@ export function useConversations({ userId, backendStatus }: UseConversationsProp
   }, [userId]);
 
   const selectConversation = useCallback((mode: 'standard' | 'eos', conversationId: string | null) => {
+    // Persist the selection
+    persistConversationId(mode, userId, conversationId);
+    
     setState(prev => ({
       ...prev,
       [mode === 'standard' ? 'activeStandardConversationId' : 'activeEosConversationId']: conversationId,
     }));
-  }, []);
+  }, [userId]);
 
   const deleteConversation = useCallback(async (mode: 'standard' | 'eos', conversationId: string) => {
     // Try backend delete
