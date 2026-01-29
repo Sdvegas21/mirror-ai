@@ -293,12 +293,23 @@ export default function Index() {
     const loadConversationMessages = async () => {
       if (state.backendStatus !== "connected") return;
 
+      console.log("📥 Loading conversation messages:", {
+        activeEosConv: conversations.activeEosConversationId,
+        activeStandardConv: conversations.activeStandardConversationId,
+        compareMode: state.compareMode
+      });
+
       // Load EOS conversation messages
       if (conversations.activeEosConversationId) {
         try {
           const response = await conversationClient.getConversationMessages(
             conversations.activeEosConversationId
           );
+          console.log("📥 EOS messages loaded:", {
+            conversationId: conversations.activeEosConversationId,
+            messageCount: response?.messages?.length,
+            backendMessageCount: response?.conversation?.messageCount
+          });
           if (response?.messages) {
             const loadedMessages: Message[] = response.messages.map((msg) => ({
               id: msg.id,
@@ -332,6 +343,11 @@ export default function Index() {
           const response = await conversationClient.getConversationMessages(
             conversations.activeStandardConversationId
           );
+          console.log("📥 Standard messages loaded:", {
+            conversationId: conversations.activeStandardConversationId,
+            messageCount: response?.messages?.length,
+            backendMessageCount: response?.conversation?.messageCount
+          });
           if (response?.messages) {
             const loadedMessages: Message[] = response.messages.map((msg) => ({
               id: msg.id,
